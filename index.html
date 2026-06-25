@@ -3,143 +3,226 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>زغلول | لوحة التحكم المالية الذكية والأكثر دقة عالمياً</title>
-  <!-- Chart.js للمخططات البيانية التفاعلية -->
+  <title>ZAGLOL | المنصة المالية الذكية</title>
+  <!-- نظام الخطوط العالمي التفاعلي -->
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+  <!-- مكتبة الرسوم البيانية المتطورة -->
   <script src="https://jsdelivr.net"></script>
-  <!-- Font Awesome للأيقونات الماليّة الفاخرة -->
+  <!-- مكتبة الأيقونات والرموز التعبيرية الفاخرة -->
   <link rel="stylesheet" href="https://cloudflare.com">
+  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background: #070a13; color: #f1f5f9; padding: 24px; min-height: 100vh; }
-    .container { max-width: 1300px; margin: 0 auto; }
+    :root {
+      --bg-main: #060814;
+      --bg-card: rgba(15, 23, 42, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --glow-blue: rgba(56, 189, 248, 0.15);
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+      --c-kwd: #38bdf8;
+      --c-egp: #10b981;
+      --c-gold: #fbbf24;
+      --c-estate: #f43f5e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', 'Plus Jakarta Sans', sans-serif; }
     
-    /* الشعار والعنوان الرئيسي */
-    .zaghlol-title { text-align: center; margin-bottom: 24px; font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #3b82f6, #10b981, #6366f1); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 4px 20px rgba(99, 102, 241, 0.1); }
+    body { 
+      background: var(--bg-main); 
+      color: var(--text-primary); 
+      padding: 30px 20px; 
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
+    }
+
+    .container { max-width: 1280px; margin: 0 auto; }
     
-    /* شريط الأسعار الحيّة والمسطرة المعيارية */
-    .live-bar { background: #0f172a; border-radius: 20px; padding: 16px 24px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border: 1px solid #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .rate-basket { background: linear-gradient(135deg, #1e3a8a, #020617); border: 1px solid #3b82f6; padding: 12px 24px; border-radius: 30px; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.25); }
-    .basket-value { font-weight: 800; color: #38bdf8; font-size: 1.3rem; }
-    .rate-item { background: #1e293b; padding: 10px 18px; border-radius: 30px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #334155; }
-    .rate-value { font-weight: 800; color: #10b981; font-size: 1.15rem; }
-    .update-badge { font-size: 0.85rem; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+    /* الهوية البصرية الرئيسية */
+    .brand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
     
-    /* بطاقات العرض والمحتوى */
-    .card { background: #0f172a; border-radius: 24px; padding: 24px; margin-bottom: 24px; border: 1px solid #1e293b; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card:hover { border-color: #3b82f6; transform: translateY(-3px); }
-    .flex-row { display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch; }
-    .flex-between { display: flex; justify-content: space-between; align-items: center; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px; }
+    .zaghlol-title { 
+      font-size: 1.8rem; 
+      font-weight: 900; 
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+    }
+
+    /* شريط البورصة والمسطرة العالمية */
+    .live-ticker-bar { 
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px; 
+      padding: 16px 28px; 
+      margin-bottom: 30px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      gap: 20px; 
+      border: 1px solid var(--border-color);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .gwb-badge { 
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(99, 102, 241, 0.05) 100%); 
+      border: 1px solid rgba(56, 189, 248, 0.3); 
+      padding: 10px 22px; 
+      border-radius: 16px; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 12px;
+      box-shadow: 0 0 30px var(--glow-blue);
+    }
     
-    /* الأزرار وعناصر الإدخال */
-    button { background: #2563eb; border: none; padding: 12px 24px; border-radius: 30px; color: #ffffff; font-weight: 600; cursor: pointer; transition: 0.2s ease; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
-    button:hover { background: #1d4ed8; transform: scale(0.98); }
-    input { background: #1e293b; border: 1px solid #334155; padding: 12px 16px; border-radius: 14px; color: #ffffff; width: 100%; margin-top: 8px; font-size: 1rem; transition: 0.2s; font-weight: bold; }
-    input:focus { border-color: #3b82f6; outline: none; background: #1e293b; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+    .gwb-badge span { font-weight: 700; color: #e2e8f0; font-size: 0.95rem; }
+    .basket-value { font-weight: 900; color: #38bdf8; font-size: 1.3rem; font-family: 'Plus Jakarta Sans', sans-serif; }
     
-    /* تفاصيل صفوف البيانات والخطوط */
-    .asset-row { display: flex; justify-content: space-between; align-items: center; margin: 16px 0; gap: 12px; }
-    .small-text { font-size: 0.85rem; color: #94a3b8; }
-    hr { border: 0; border-top: 1px solid #1e293b; margin: 20px 0; }
-    canvas { max-height: 220px; width: 100%; margin-top: 10px; }
+    .ticker-item { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: var(--text-muted); }
+    .ticker-item strong { color: var(--text-primary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; }
     
-    .badge-pnl { padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+    /* تصميم البطاقات المتقدم */
+    .card { 
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 28px; 
+      padding: 28px; 
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+    }
+    .card:hover { 
+      transform: translateY(-4px); 
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+    
+    .grid-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 30px; }
+    .grid-dashboard { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; }
+    
+    @media (max-width: 968px) { .grid-dashboard { grid-template-columns: 1fr; } }
+
+    .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .card-title i { font-size: 1.3rem; }
+
+    .huge-display { font-size: 2.4rem; font-weight: 900; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -1px; margin: 10px 0; line-height: 1; }
+    .pnl-indicator { font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 12px; }
+
+    /* نماذج وحقول الإدخال والتحكم */
+    .field-group { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 12px 16px; 
+      border-radius: 16px;
+      margin-bottom: 14px;
+      transition: background 0.3s;
+    }
+    .field-group:focus-within { background: rgba(56, 189, 248, 0.03); border-color: rgba(56, 189, 248, 0.2); }
+    .field-group label { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    
+    input[type="number"] { 
+      background: #111726; 
+      border: 1px solid rgba(255,255,255,0.06); 
+      padding: 10px 14px; 
+      border-radius: 12px; 
+      color: #fff; 
+      width: 140px; 
+      text-align: left; 
+      font-weight: 700; 
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem;
+    }
+    input[type="number"]:focus { border-color: #38bdf8; outline: none; }
+
+    /* مخرجات الحساب اللحظي الفاخرة */
+    .output-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .output-item:last-child { border: none; }
+    .output-label { font-size: 0.85rem; color: var(--text-muted); }
+    .output-val { font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; }
+
+    button.btn-refresh { 
+      background: #111726; 
+      border: 1px solid rgba(255,255,255,0.08); 
+      padding: 10px 18px; 
+      border-radius: 14px; 
+      color: var(--text-primary); 
+      font-weight: 700; 
+      cursor: pointer; 
+      transition: all 0.3s;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.9rem;
+    }
+    button.btn-refresh:hover { background: #38bdf8; color: #000; border-color: #38bdf8; box-shadow: 0 0 20px rgba(56,189,248,0.3); }
+
+    .chart-box { position: relative; height: 210px; width: 100%; margin-top: 15px; }
+    .legend-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-top: 20px; }
   </style>
 </head>
 <body>
 <div class="container">
   
-  <div class="zaghlol-title">⚡ ZAGLOL • نظام القياس المالي الأكثر ذكاءً</div>
-
-  <!-- شريط الأسعار الحية الحقيقي المربوط بالمنصة المفتوحة -->
-  <div class="live-bar">
-    <div class="rate-basket">
-      <span><i class="fas fa-ruler-combined" style="color: #38bdf8;"></i> وحدة المسطرة العالمية (GWB):</span>
-      <span id="basketValueDisplay" class="basket-value">جاري الحساب...</span>
-    </div>
-    <div class="rate-item"><i class="fas fa-money-bill-wave" style="color: #10b981;"></i> 1 KWD = <span id="kwdToEgpDisplay" class="rate-value">---</span> EGP</div>
-    <div class="rate-item"><i class="fas fa-gem" style="color: #fbbf24;"></i> جرام الذهب عيار 24 = <span id="goldPerGramKwd" class="rate-value">---</span> KWD</div>
-    <div class="update-badge"><i class="fas fa-history"></i> تحديث كل دقيقة: <span id="lastUpdateTime" style="font-weight: bold; color: #a855f7;">--:--:--</span></div>
-    <button id="manualRefreshBtn"><i class="fas fa-sync-alt"></i> تحديث فوري</button>
+  <div class="brand-header">
+    <div class="zaghlol-title">⚡ ZAGLOL</div>
+    <button id="manualRefreshBtn" class="btn-refresh"><i class="fas fa-rotate"></i> تحديث الأسواق</button>
   </div>
 
-  <!-- لوحات قياس الملاءة وثروة المسطرة الاستراتيجية -->
-  <div class="flex-row" style="margin-bottom: 24px;">
-    <div class="card" style="flex: 1; min-width: 320px;">
-      <h3><i class="fas fa-wallet" style="color: #10b981; margin-left: 8px;"></i> رأس المال الاسمي الإجمالي</h3>
-      <div class="rate-value" style="font-size: 2.3rem; margin: 18px 0; color: #ffffff;" id="totalWealthDisplay">0.000 KWD</div>
-      <div id="profitLossMsg" class="badge-pnl">بانتظار جلب الأسعار...</div>
-      <hr>
-      <div class="flex-between small-text"><span>💰 القيمة المبدئية المسجلة كمعيار:</span><span id="startingWealthSpan" style="font-weight: bold; color: #ffffff;">15,000.000 KWD</span></div>
+  <!-- شريط البورصة المطور والمحدث لحظياً -->
+  <div class="live-ticker-bar">
+    <div class="gwb-badge">
+      <span><i class="fas fa-layer-group" style="color: #38bdf8;"></i> مسطرة النقد العالمية (GWB):</span>
+      <span id="basketValueDisplay" class="basket-value">...</span>
+    </div>
+    <div class="ticker-item"><span style="color:var(--c-egp)">●</span> سعر صرف الدينار: <strong>1 KWD = <span id="kwdToEgpDisplay">---</span> EGP</strong></div>
+    <div class="ticker-item"><span style="color:var(--c-gold)">●</span> الذهب الصافي عيار 24: <strong><span id="goldPerGramKwd">---</span> KWD / جرام</strong></div>
+    <div class="ticker-item" style="font-size:0.8rem;"><i class="far fa-clock"></i> مزامنة: <span id="lastUpdateTime" style="color:var(--text-primary)">--:--:--</span></div>
+  </div>
+
+  <!-- واجهات القياس المزدوجة للثروة -->
+  <div class="grid-hero">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-wallet" style="color: var(--c-egp);"></i> القيمة الاسمية الموحدة</div>
+      <div class="huge-display" id="totalWealthDisplay" style="color: #ffffff;">0.000 <span style="font-size:1.2rem; color:var(--text-muted)">KWD</span></div>
+      <div id="pnlStatus" class="pnl-indicator">جاري الحساب المالي...</div>
     </div>
     
-    <div class="card" style="flex: 1; min-width: 320px; border-color: #3b82f6; background: linear-gradient(180deg, #0f172a 0%, #06152d 100%);">
-      <h3><i class="fas fa-chart-area" style="color: #38bdf8; margin-left: 8px;"></i> تقييم المحفظة بـ "مسطرة الثروة العالمية" (GWB)</h3>
-      <div class="basket-value" style="font-size: 2.3rem; margin: 18px 0;" id="basketWealthDisplay">--- GWB</div>
-      <p class="small-text" style="color: #93c5fd; line-height: 1.4;">تقييم متطور عابر للتضخم النقدي العالمي والمحلي. القيمة المستقرة هنا تشير إلى حماية حقيقية لممتلكاتك الشاملة.</p>
-      <hr style="border-top-color: #1e3a8a;">
-      <div class="small-text" style="color: #94a3b8;">توزيع وزن المسطرة: 40% دولار | 25% يورو | 15% ذهب | 10% يوان | 5% إسترليني | 5% ين</div>
+    <div class="card" style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(6, 17, 44, 0.9) 100%); border-color: rgba(56, 189, 248, 0.2);">
+      <div class="card-title"><i class="fas fa-scale-balanced" style="color: var(--c-kwd);"></i> صافي الميزان بمسطرة الثروة (GWB)</div>
+      <div class="huge-display" id="basketWealthDisplay" style="color: #38bdf8;">0.00 <span style="font-size:1.2rem; color:var(--text-muted)">GWB</span></div>
+      <div class="pnl-indicator" style="background:rgba(56,189,248,0.06); color:#38bdf8;">مقياس حقيقي مجرد من تضخم العملات</div>
     </div>
   </div>
 
-  <!-- تفاصيل الأصول الحية والتمثيل البياني الهيكلي لها -->
-  <div class="grid-2">
+  <!-- لوحة التحكم وإدارة المدخرات والمخططات -->
+  <div class="grid-dashboard">
     <div class="card">
-      <h3><i class="fas fa-edit" style="color: #a855f7; margin-left: 8px;"></i> جرد وتحديث مدخراتك وممتلكاتك</h3>
-      <div class="asset-row"><span>💵 سيولة نقدية بالدينار الكويتي (KWD):</span><input type="number" id="cashKWD" value="4500.00" style="width: 140px;"></div>
-      <div class="asset-row"><span>🇪🇬 سيولة نقدية بالجنيه المصري (EGP):</span><input type="number" id="cashEGP" value="320000.00" style="width: 140px;"></div>
-      <div class="asset-row"><span>🏅 وزن الذهب الصافي المملوك (جرام):</span><input type="number" id="goldGrams" value="120.00" style="width: 140px;"></div>
-      <div class="asset-row"><span>🏠 القيمة التقديرية للعقارات الحالية (EGP):</span><input type="number" id="realEstateEGP" value="2500000.00" style="width: 140px;"></div>
-      <hr>
-      <h4>📊 القيمة اللحظية الصافية محتسبة بالدينار الكويتي الفوري</h4>
-      <div class="asset-row"><span class="small-text">صافي الكاش الكويتي:</span><span id="cashKWDVal" style="font-weight: bold; color: #3b82f6;">0.000 KWD</span></div>
-      <div class="asset-row"><span class="small-text">قيمة الكاش المصري مقوماً بالكويتي:</span><span id="cashEGPVal" style="font-weight: bold; color: #10b981;">0.000 KWD</span></div>
-      <div class="asset-row"><span class="small-text">القيمة التقديرية للذهب بالدينار:</span><span id="goldKWDVal" style="font-weight: bold; color: #fbbf24;">0.000 KWD</span></div>
-      <div class="asset-row"><span class="small-text">القيمة العقارية الفعلية بالدينار:</span><span id="realEstateKWDVal" style="font-weight: bold; color: #ec4899;">0.000 KWD</span></div>
-    </div>
-
-    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-      <h3><i class="fas fa-chart-pie" style="color: #6366f1; margin-left: 8px;"></i> التوزيع النسبي لأصولك الحية</h3>
-      <div style="position: relative; height:200px; width:100%">
-        <canvas id="assetsPieChart"></canvas>
-      </div>
-      <hr>
-      <h3><i class="fas fa-shield-alt" style="color: #34d399; margin-left: 8px;"></i> إدارة الموازنة والتدفق الشهري</h3>
-      <div class="asset-row"><span class="small-text">صافي فائض الموازنة المستهدف شهرياً:</span><span id="budgetAlert" style="font-weight: bold;">مستقر</span></div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // تحديد أسعار الصرف الحية الأولية والاحتياطية المتقاطعة
-  let ratesEngine = {
-    EGP: 155.00,
-    USD: 3.25,  // سيتم احتساب قيمة الدينار مقابل العملات تلقائياً (1 KWD = كم بالعملة الأجنبية)
-    EUR: 2.98,
-    CNY: 23.50,
-    GBP: 2.55,
-    JPY: 510.00,
-    goldGramKwd: 23.500
-  };
-
-  const initialStartingWealth = 15000.00;
-  let chartInstance = null;
-
-  // جلب الأسعار الفورية الحية من المنصة المالية المفتوحة والموثوقة دولياً
-  async function loadLiveForexAndGoldData() {
-    try {
-      // الاستعلام المباشر لأسعار الدينار الكويتي كقاعدة تبادلية أساسية
-      const response = await fetch('https://er-api.com');
-      if (!response.ok) throw new Error('استجابة الشبكة غير مستقرة');
-      const data = await response.json();
+      <div class="card-title"><i class="fas fa-sliders" style="color: #6366f1;"></i> جرد وإدارة وتوزيع الأصول الحية</div>
       
-      if (data && data.rates) {
-        ratesEngine.EGP = data.rates.EGP;
-        ratesEngine.USD = data.rates.USD;
-        ratesEngine.EUR = data.rates.EUR;
-        ratesEngine.CNY = data.rates.CNY;
-        ratesEngine.GBP = data.rates.GBP;
-        ratesEngine.JPY = data.rates.JPY;
+      <div class="field-group">
+        <label><i class="fas fa-money-bill" style="color:var(--c-kwd)"></i> كاش بالدينار الكويتي (KWD)</label>
+        <input type="number" id="cashKWD" value="4500.00" step="100">
+      </div>
+      <div class="field-group">
+        <label><i class="fas fa-money-bill-1" style="color:var(--c-egp)"></i> كاش بالجنيه المصري (EGP)</label>
+        <input type="number" id="cashEGP" value="380000.00" step="5000">
+      </div>
+      <div class="field-group">
+        <label><i class="fas fa-cube" style="color:var(--c-gold)"></i> غطاء من الذهب الصافي (جرام)</label>
+        <input type="number" id="goldGrams" value="110.00" step="5">
+      </div>
+      <div class="field-group">
 
-        // حساب سعر جرام الذهب عيار 24 الفوري بدقة بالدينار الكويتي 
 
