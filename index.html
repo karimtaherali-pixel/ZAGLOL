@@ -1,228 +1,1070 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>ZAGLOL | المنصة المالية الذكية</title>
-  <!-- نظام الخطوط العالمي التفاعلي -->
-  <link rel="preconnect" href="https://googleapis.com">
-  <link rel="preconnect" href="https://gstatic.com" crossorigin>
-  <link href="https://googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
-  <!-- مكتبة الرسوم البيانية المتطورة -->
-  <script src="https://jsdelivr.net"></script>
-  <!-- مكتبة الأيقونات والرموز التعبيرية الفاخرة -->
-  <link rel="stylesheet" href="https://cloudflare.com">
-  
-  <style>
-    :root {
-      --bg-main: #060814;
-      --bg-card: rgba(15, 23, 42, 0.65);
-      --border-color: rgba(255, 255, 255, 0.08);
-      --glow-blue: rgba(56, 189, 248, 0.15);
-      --text-primary: #f8fafc;
-      --text-muted: #94a3b8;
-      --c-kwd: #38bdf8;
-      --c-egp: #10b981;
-      --c-gold: #fbbf24;
-      --c-estate: #f43f5e;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>زغلول | لوحة التحكم المالية الذكية</title>
+<meta name="description" content="لوحة تحكم مالية شخصية للكويت: أسعار حية للدينار الكويتي والجنيه المصري والذهب، إدارة الأصول والدخل والمصروفات، أهداف، صندوق طوارئ وتحليلات ذكية.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root{
+    --bg-main:#07080f;
+    --bg-card:rgba(17,21,34,0.72);
+    --bg-card-solid:#111522;
+    --bg-input:#161b2c;
+    --border:rgba(255,255,255,0.08);
+    --border-soft:rgba(255,255,255,0.05);
+    --text-primary:#f5f6fa;
+    --text-muted:#8d96ac;
+    --text-dim:#5c6478;
+    --c-kwd:#38bdf8;
+    --c-egp:#34d399;
+    --c-gold:#d4af37;
+    --c-gold-bright:#f3cd6b;
+    --c-estate:#fb7185;
+    --c-danger:#f87171;
+    --c-success:#4ade80;
+    --radius-lg:26px;
+    --radius-md:18px;
+    --radius-sm:12px;
+    --shadow-card:0 14px 34px rgba(0,0,0,0.35);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal','Plus Jakarta Sans',sans-serif;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-main);
+    color:var(--text-primary);
+    padding:22px 16px 100px;
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 8% 8%, rgba(212,175,55,0.07) 0%, transparent 38%),
+      radial-gradient(circle at 92% 15%, rgba(56,189,248,0.07) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(52,211,153,0.05) 0%, transparent 45%);
+    background-attachment:fixed;
+  }
+  .container{max-width:1240px;margin:0 auto;}
+  ::selection{background:rgba(212,175,55,0.35);}
+  input:focus-visible, button:focus-visible, select:focus-visible{outline:2px solid var(--c-gold-bright); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', 'Plus Jakarta Sans', sans-serif; }
-    
-    body { 
-      background: var(--bg-main); 
-      color: var(--text-primary); 
-      padding: 30px 20px; 
-      min-height: 100vh;
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
-    }
+  /* ===== Header ===== */
+  .brand-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#f3cd6b,#a9791f);box-shadow:0 6px 16px rgba(212,175,55,0.35);color:#1a1200;font-size:1.05rem;}
+  .brand-title{font-size:1.55rem;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(120deg,#f3cd6b 10%,#d4af37 55%,#fff6da 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .brand-sub{font-size:0.72rem;color:var(--text-dim);margin-top:-2px;}
+  .header-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--bg-input);border:1px solid var(--border);padding:9px 16px;border-radius:14px;color:var(--text-primary);font-weight:700;font-size:0.85rem;cursor:pointer;transition:.25s;}
+  .btn:hover{border-color:var(--c-gold);box-shadow:0 0 0 3px rgba(212,175,55,0.12);}
+  .btn-gold{background:linear-gradient(120deg,#f3cd6b,#c79a2e);color:#1a1200;border:none;}
+  .btn-gold:hover{box-shadow:0 0 20px rgba(212,175,55,0.4);}
+  .btn-ghost{background:transparent;}
+  .btn-sm{padding:6px 12px;font-size:0.78rem;border-radius:10px;}
+  .btn-danger-ghost{color:var(--c-danger);}
+  .icon-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:0.95rem;padding:4px 6px;transition:.2s;}
+  .icon-btn:hover{color:var(--c-danger);}
 
-    .container { max-width: 1280px; margin: 0 auto; }
-    
-    /* الهوية البصرية الرئيسية */
-    .brand-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    
-    .zaghlol-title { 
-      font-size: 1.8rem; 
-      font-weight: 900; 
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%); 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent; 
-    }
+  /* ===== Ticker ===== */
+  .live-bar{
+    background:var(--bg-card);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border);border-radius:22px;padding:14px 22px;margin-bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    box-shadow:var(--shadow-card);
+  }
+  .rate-item{display:inline-flex;align-items:center;gap:9px;font-size:0.88rem;color:var(--text-muted);}
+  .rate-item i{width:16px;text-align:center;}
+  .rate-value{font-weight:800;color:var(--text-primary);font-family:'Plus Jakarta Sans',sans-serif;font-size:1.02rem;}
+  .rate-value.kwd{color:var(--c-kwd);}
+  .rate-value.gold{color:var(--c-gold-bright);}
+  .update-meta{display:flex;align-items:center;gap:14px;font-size:0.72rem;color:var(--text-dim);}
+  #rateStatus i{margin-left:4px;}
 
-    /* شريط البورصة والمسطرة العالمية */
-    .live-ticker-bar { 
-      background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 24px; 
-      padding: 16px 28px; 
-      margin-bottom: 30px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      flex-wrap: wrap; 
-      gap: 20px; 
-      border: 1px solid var(--border-color);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-    }
+  /* ===== Cards ===== */
+  .card{
+    background:var(--bg-card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-radius:var(--radius-lg);padding:24px;border:1px solid var(--border);
+    box-shadow:var(--shadow-card);transition:border-color .3s, transform .3s;
+  }
+  .card:hover{border-color:rgba(212,175,55,0.22);}
+  .card-title{font-size:1.02rem;font-weight:700;display:flex;align-items:center;gap:9px;margin-bottom:18px;color:var(--text-primary);}
+  .card-title i{color:var(--c-gold);font-size:1.05rem;}
+  .card-title .badge-soft{margin-inline-start:auto;font-size:0.68rem;font-weight:600;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:20px;border:1px solid var(--border-soft);}
+  .section{margin-bottom:22px;scroll-margin-top:20px;}
 
-    .gwb-badge { 
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(99, 102, 241, 0.05) 100%); 
-      border: 1px solid rgba(56, 189, 248, 0.3); 
-      padding: 10px 22px; 
-      border-radius: 16px; 
-      display: inline-flex; 
-      align-items: center; 
-      gap: 12px;
-      box-shadow: 0 0 30px var(--glow-blue);
-    }
-    
-    .gwb-badge span { font-weight: 700; color: #e2e8f0; font-size: 0.95rem; }
-    .basket-value { font-weight: 900; color: #38bdf8; font-size: 1.3rem; font-family: 'Plus Jakarta Sans', sans-serif; }
-    
-    .ticker-item { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: var(--text-muted); }
-    .ticker-item strong { color: var(--text-primary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; }
-    
-    /* تصميم البطاقات المتقدم */
-    .card { 
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: 28px; 
-      padding: 28px; 
-      border: 1px solid var(--border-color);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
-    }
-    .card:hover { 
-      transform: translateY(-4px); 
-      border-color: rgba(56, 189, 248, 0.25);
-    }
-    
-    .grid-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 30px; }
-    .grid-dashboard { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; }
-    
-    @media (max-width: 968px) { .grid-dashboard { grid-template-columns: 1fr; } }
+  .grid-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:18px;}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;}
 
-    .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-    .card-title i { font-size: 1.3rem; }
+  .hero-card .huge{font-size:2.15rem;font-weight:900;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-1px;margin:6px 0;line-height:1;}
+  .hero-card .huge small{font-size:1.05rem;color:var(--text-muted);font-weight:700;}
+  .pnl-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:700;padding:6px 13px;border-radius:12px;margin-top:6px;}
+  .pnl-up{background:rgba(74,222,128,0.1);color:var(--c-success);}
+  .pnl-down{background:rgba(248,113,113,0.1);color:var(--c-danger);}
+  .pnl-flat{background:rgba(148,163,184,0.1);color:var(--text-muted);}
+  .hero-foot{display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-top:14px;padding-top:12px;border-top:1px solid var(--border-soft);}
+  .hero-foot b{color:var(--text-muted);font-family:'Plus Jakarta Sans',sans-serif;}
 
-    .huge-display { font-size: 2.4rem; font-weight: 900; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -1px; margin: 10px 0; line-height: 1; }
-    .pnl-indicator { font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 12px; }
+  .gold-shimmer{background:linear-gradient(110deg,#f3cd6b 20%, #fff6da 40%, #d4af37 60%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3.6s linear infinite;}
+  @keyframes shimmer{0%{background-position:0% 50%;}100%{background-position:220% 50%;}}
 
-    /* نماذج وحقول الإدخال والتحكم */
-    .field-group { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.04);
-      padding: 12px 16px; 
-      border-radius: 16px;
-      margin-bottom: 14px;
-      transition: background 0.3s;
+  .chart-box{position:relative;height:190px;width:100%;}
+  .chart-box.tall{height:230px;}
+
+  /* ===== Field groups ===== */
+  .field-group{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.02);border:1px solid var(--border-soft);padding:10px 14px;border-radius:16px;margin-bottom:10px;gap:10px;flex-wrap:wrap;}
+  .field-group:focus-within{background:rgba(212,175,55,0.04);border-color:rgba(212,175,55,0.25);}
+  .field-group label{font-size:0.88rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;}
+  .field-group .field-controls{display:flex;align-items:center;gap:8px;}
+  input[type="number"], input[type="text"], select{
+    background:var(--bg-input);border:1px solid var(--border);padding:9px 12px;border-radius:11px;color:#fff;
+    font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.92rem;
+  }
+  input[type="number"]{width:128px;direction:ltr;text-align:center;}
+  select{font-family:'Tajawal',sans-serif;font-weight:600;}
+  input[type="number"]:focus, select:focus, input[type="text"]:focus{border-color:var(--c-gold);outline:none;}
+
+  .breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;font-size:0.84rem;border-bottom:1px solid var(--border-soft);}
+  .breakdown-row:last-child{border:none;}
+  .breakdown-row .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-inline-end:8px;}
+  .breakdown-row span:last-child{font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;}
+
+  /* ===== Lists ===== */
+  .list-empty{font-size:0.82rem;color:var(--text-dim);text-align:center;padding:22px 8px;border:1px dashed var(--border);border-radius:14px;}
+  .list-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.025);border:1px solid var(--border-soft);border-radius:14px;padding:10px 14px;margin-bottom:8px;gap:10px;flex-wrap:wrap;}
+  .list-row .info{display:flex;flex-direction:column;gap:2px;}
+  .list-row .info .name{font-weight:700;font-size:0.88rem;}
+  .list-row .info .meta{font-size:0.72rem;color:var(--text-dim);}
+  .list-row .amount{display:flex;align-items:center;gap:10px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;}
+  .tag{font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:20px;}
+  .tag-recurring{background:rgba(52,211,153,0.12);color:var(--c-egp);}
+  .tag-onetime{background:rgba(148,163,184,0.12);color:var(--text-muted);}
+  .tag-fixed{background:rgba(56,189,248,0.12);color:var(--c-kwd);}
+  .tag-variable{background:rgba(251,113,133,0.12);color:var(--c-estate);}
+  .scroll-list{max-height:260px;overflow-y:auto;padding-inline-end:4px;}
+  .scroll-list::-webkit-scrollbar{width:6px;}
+  .scroll-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+  .totals-row{display:flex;justify-content:space-between;font-size:0.83rem;color:var(--text-muted);padding:6px 2px;}
+  .totals-row b{color:var(--text-primary);font-family:'Plus Jakarta Sans',sans-serif;}
+  hr.sep{border:none;border-top:1px solid var(--border-soft);margin:12px 0;}
+
+  /* ===== Progress ===== */
+  .progress-bar{background:var(--bg-input);border-radius:20px;height:10px;overflow:hidden;margin:10px 0;}
+  .progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#38bdf8,#34d399);transition:width .5s ease;}
+  .progress-fill.gold{background:linear-gradient(90deg,#d4af37,#f3cd6b);}
+  .goal-item{background:rgba(255,255,255,0.02);border:1px solid var(--border-soft);border-radius:16px;padding:14px;margin-bottom:12px;}
+  .goal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .goal-head .name{font-weight:700;font-size:0.9rem;}
+  .goal-nums{display:flex;justify-content:space-between;font-size:0.76rem;color:var(--text-muted);margin-bottom:4px;}
+  .goal-contribute{display:flex;gap:8px;margin-top:8px;}
+  .goal-contribute input{flex:1;width:auto;}
+
+  .gauge-row{display:flex;justify-content:space-between;font-size:0.83rem;color:var(--text-muted);margin-bottom:4px;}
+  .gauge-row b{color:var(--text-primary);font-family:'Plus Jakarta Sans',sans-serif;}
+  .gauge-note{font-size:0.75rem;color:var(--text-dim);margin-top:8px;}
+
+  .recommend-box{background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.18);border-radius:16px;padding:15px 16px;margin-top:6px;font-size:0.85rem;line-height:1.9;}
+  .recommend-box .rec-line{display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;}
+  .recommend-box i{margin-top:3px;color:var(--c-gold);}
+  .stat-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
+  .stat-mini{background:rgba(255,255,255,0.025);border:1px solid var(--border-soft);border-radius:14px;padding:12px 14px;}
+  .stat-mini .lbl{font-size:0.72rem;color:var(--text-dim);margin-bottom:4px;}
+  .stat-mini .val{font-size:1.05rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;}
+
+  /* ===== Modal ===== */
+  .modal{display:none;position:fixed;inset:0;background:rgba(4,5,10,0.72);backdrop-filter:blur(4px);justify-content:center;align-items:center;z-index:3000;padding:16px;}
+  .modal.open{display:flex;}
+  .modal-content{background:var(--bg-card-solid);border:1px solid var(--border);border-radius:24px;padding:24px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+  .modal-content h3{font-size:1.05rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .modal-field{margin-bottom:12px;}
+  .modal-field label{display:block;font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;font-weight:600;}
+  .modal-field input, .modal-field select{width:100%;}
+  .modal-check{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-muted);margin:14px 0 4px;}
+  .modal-buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+
+  /* ===== Toast ===== */
+  .toast{position:fixed;bottom:90px;left:16px;right:16px;max-width:360px;margin:0 auto;background:#141a2c;border:1px solid var(--border);border-inline-start:4px solid var(--c-gold);padding:13px 16px;border-radius:16px;z-index:4000;font-size:0.83rem;box-shadow:0 12px 30px rgba(0,0,0,0.4);animation:toastIn .3s ease;display:flex;align-items:center;gap:10px;}
+  .toast.error{border-inline-start-color:var(--c-danger);}
+  @keyframes toastIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  @media (min-width:640px){.toast{left:auto;right:24px;bottom:24px;margin:0;}}
+
+  /* ===== Bottom Nav ===== */
+  .bottom-nav{display:none;}
+  @media (max-width:768px){
+    .bottom-nav{
+      display:flex;position:fixed;bottom:0;left:0;right:0;z-index:2500;
+      background:rgba(10,12,20,0.92);backdrop-filter:blur(14px);border-top:1px solid var(--border);
+      padding:8px 6px calc(8px + env(safe-area-inset-bottom));justify-content:space-around;
     }
-    .field-group:focus-within { background: rgba(56, 189, 248, 0.03); border-color: rgba(56, 189, 248, 0.2); }
-    .field-group label { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
-    
-    input[type="number"] { 
-      background: #111726; 
-      border: 1px solid rgba(255,255,255,0.06); 
-      padding: 10px 14px; 
-      border-radius: 12px; 
-      color: #fff; 
-      width: 140px; 
-      text-align: left; 
-      font-weight: 700; 
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 1rem;
-    }
-    input[type="number"]:focus { border-color: #38bdf8; outline: none; }
+    .bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-dim);text-decoration:none;font-size:0.62rem;font-weight:700;padding:4px 8px;border-radius:12px;transition:.2s;}
+    .bottom-nav a i{font-size:1.05rem;}
+    .bottom-nav a.active, .bottom-nav a:hover{color:var(--c-gold-bright);}
+    body{padding-bottom:86px;}
+  }
 
-    /* مخرجات الحساب اللحظي الفاخرة */
-    .output-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    .output-item:last-child { border: none; }
-    .output-label { font-size: 0.85rem; color: var(--text-muted); }
-    .output-val { font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; }
-
-    button.btn-refresh { 
-      background: #111726; 
-      border: 1px solid rgba(255,255,255,0.08); 
-      padding: 10px 18px; 
-      border-radius: 14px; 
-      color: var(--text-primary); 
-      font-weight: 700; 
-      cursor: pointer; 
-      transition: all 0.3s;
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 0.9rem;
-    }
-    button.btn-refresh:hover { background: #38bdf8; color: #000; border-color: #38bdf8; box-shadow: 0 0 20px rgba(56,189,248,0.3); }
-
-    .chart-box { position: relative; height: 210px; width: 100%; margin-top: 15px; }
-    .legend-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; margin-top: 20px; }
-  </style>
+  @media (max-width:640px){
+    .brand-title{font-size:1.3rem;}
+    .hero-card .huge{font-size:1.7rem;}
+    .card{padding:18px;}
+    input[type="number"]{width:108px;}
+  }
+</style>
 </head>
 <body>
 <div class="container">
-  
+
+  <!-- ===== Header ===== -->
   <div class="brand-header">
-    <div class="zaghlol-title">⚡ ZAGLOL</div>
-    <button id="manualRefreshBtn" class="btn-refresh"><i class="fas fa-rotate"></i> تحديث الأسواق</button>
-  </div>
-
-  <!-- شريط البورصة المطور والمحدث لحظياً -->
-  <div class="live-ticker-bar">
-    <div class="gwb-badge">
-      <span><i class="fas fa-layer-group" style="color: #38bdf8;"></i> مسطرة النقد العالمية (GWB):</span>
-      <span id="basketValueDisplay" class="basket-value">...</span>
+    <div class="brand">
+      <div class="brand-mark"><i class="fas fa-bolt"></i></div>
+      <div>
+        <div class="brand-title">زغلول</div>
+        <div class="brand-sub">لوحة التحكم المالية · الكويت</div>
+      </div>
     </div>
-    <div class="ticker-item"><span style="color:var(--c-egp)">●</span> سعر صرف الدينار: <strong>1 KWD = <span id="kwdToEgpDisplay">---</span> EGP</strong></div>
-    <div class="ticker-item"><span style="color:var(--c-gold)">●</span> الذهب الصافي عيار 24: <strong><span id="goldPerGramKwd">---</span> KWD / جرام</strong></div>
-    <div class="ticker-item" style="font-size:0.8rem;"><i class="far fa-clock"></i> مزامنة: <span id="lastUpdateTime" style="color:var(--text-primary)">--:--:--</span></div>
+    <div class="header-actions">
+      <button id="exportBtn" class="btn btn-ghost btn-sm" title="نسخة احتياطية"><i class="fas fa-download"></i> نسخ احتياطي</button>
+      <label class="btn btn-ghost btn-sm" for="importInput" style="cursor:pointer;" title="استيراد نسخة احتياطية"><i class="fas fa-upload"></i> استيراد</label>
+      <input type="file" id="importInput" accept="application/json" hidden>
+      <button id="resetBtn" class="btn btn-ghost btn-sm btn-danger-ghost" title="إعادة تعيين البيانات"><i class="fas fa-rotate-left"></i></button>
+      <button id="manualRefreshBtn" class="btn btn-gold btn-sm"><i class="fas fa-arrows-rotate"></i> تحديث الأسعار</button>
+    </div>
   </div>
 
-  <!-- واجهات القياس المزدوجة للثروة -->
-  <div class="grid-hero">
+  <!-- ===== Live rates ticker ===== -->
+  <div class="live-bar">
+    <div class="rate-item"><i class="fas fa-money-bill-transfer" style="color:var(--c-kwd)"></i> 1 KWD = <span id="kwdToEgpDisplay" class="rate-value kwd">---</span> EGP</div>
+    <div class="rate-item"><i class="fas fa-gem" style="color:var(--c-gold)"></i> جرام الذهب (عيار 24) = <span id="goldPerGramKwd" class="rate-value gold">---</span> KWD</div>
+    <div class="update-meta">
+      <span id="rateStatus"><i class="fas fa-circle-notch fa-spin"></i> جاري التحديث...</span>
+      <span><i class="far fa-clock"></i> <span id="lastUpdateTime">--:--:--</span></span>
+    </div>
+  </div>
+
+  <!-- ===== Overview ===== -->
+  <div class="section" id="sec-overview">
+    <div class="grid-hero">
+      <div class="card hero-card">
+        <div class="card-title"><i class="fas fa-wallet"></i> صافي الثروة الإجمالية</div>
+        <div class="huge gold-shimmer" id="totalWealthDisplay">0.000 <small>KWD</small></div>
+        <div id="pnlBadge" class="pnl-badge pnl-flat"><i class="fas fa-minus"></i> جاري الحساب...</div>
+        <div class="hero-foot">
+          <span>الثروة الابتدائية: <b id="startingWealthSpan">0.000 KWD</b></span>
+          <span>الربح/الخسارة: <b id="pnlAmount">0.000 KWD</b></span>
+        </div>
+      </div>
+      <div class="card hero-card" style="border-color:rgba(212,175,55,0.18);">
+        <div class="card-title"><i class="fas fa-scale-balanced"></i> الثروة الحقيقية (بمعادل الذهب)</div>
+        <div class="huge" id="goldWealthDisplay" style="color:var(--c-gold-bright);">0.00 <small>جرام ذهب 24K</small></div>
+        <div class="pnl-badge pnl-flat" style="background:rgba(212,175,55,0.08);color:var(--c-gold-bright);"><i class="fas fa-shield-halved"></i> مقياس مجرّد من تضخم العملات</div>
+        <div class="hero-foot">
+          <span>يعادل ثروتك اليوم لو حُفظت بالكامل ذهباً — قيمة تقارَن عبر الزمن دون تأثير انخفاض قيمة العملة.</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
-      <div class="card-title"><i class="fas fa-wallet" style="color: var(--c-egp);"></i> القيمة الاسمية الموحدة</div>
-      <div class="huge-display" id="totalWealthDisplay" style="color: #ffffff;">0.000 <span style="font-size:1.2rem; color:var(--text-muted)">KWD</span></div>
-      <div id="pnlStatus" class="pnl-indicator">جاري الحساب المالي...</div>
-    </div>
-    
-    <div class="card" style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(6, 17, 44, 0.9) 100%); border-color: rgba(56, 189, 248, 0.2);">
-      <div class="card-title"><i class="fas fa-scale-balanced" style="color: var(--c-kwd);"></i> صافي الميزان بمسطرة الثروة (GWB)</div>
-      <div class="huge-display" id="basketWealthDisplay" style="color: #38bdf8;">0.00 <span style="font-size:1.2rem; color:var(--text-muted)">GWB</span></div>
-      <div class="pnl-indicator" style="background:rgba(56,189,248,0.06); color:#38bdf8;">مقياس حقيقي مجرد من تضخم العملات</div>
+      <div class="card-title"><i class="fas fa-chart-line"></i> تطور الثروة عبر الزمن <span class="badge-soft">آخر 100 قراءة</span></div>
+      <div class="chart-box tall"><canvas id="wealthHistoryChart"></canvas></div>
     </div>
   </div>
 
-  <!-- لوحة التحكم وإدارة المدخرات والمخططات -->
-  <div class="grid-dashboard">
+  <!-- ===== Assets ===== -->
+  <div class="section" id="sec-assets">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-sliders"></i> جرد وإدارة الأصول</div>
+        <div class="field-group">
+          <label><i class="fas fa-money-bill" style="color:var(--c-kwd)"></i> كاش بالدينار الكويتي</label>
+          <input type="number" id="cashKWD" step="50" value="0">
+        </div>
+        <div class="field-group">
+          <label><i class="fas fa-money-bill-wave" style="color:var(--c-egp)"></i> كاش بالجنيه المصري</label>
+          <input type="number" id="cashEGP" step="1000" value="0">
+        </div>
+        <div class="field-group">
+          <label><i class="fas fa-cube" style="color:var(--c-gold)"></i> ذهب (جرام)</label>
+          <div class="field-controls">
+            <select id="goldKarat">
+              <option value="24">عيار 24</option>
+              <option value="22">عيار 22</option>
+              <option value="21" selected>عيار 21</option>
+              <option value="18">عيار 18</option>
+              <option value="14">عيار 14</option>
+            </select>
+            <input type="number" id="goldGrams" step="1" value="0">
+          </div>
+        </div>
+        <div class="field-group">
+          <label><i class="fas fa-city" style="color:var(--c-estate)"></i> عقارات (بالجنيه المصري)</label>
+          <input type="number" id="realEstateEGP" step="10000" value="0">
+        </div>
+
+        <hr class="sep">
+        <div class="breakdown-row"><span><span class="dot" style="background:var(--c-kwd)"></span>كاش KWD</span><span id="cashKWDVal">0.000</span></div>
+        <div class="breakdown-row"><span><span class="dot" style="background:var(--c-egp)"></span>كاش EGP ← KWD</span><span id="cashEGPVal">0.000</span></div>
+        <div class="breakdown-row"><span><span class="dot" style="background:var(--c-gold)"></span>ذهب ← KWD</span><span id="goldKWDVal">0.000</span></div>
+        <div class="breakdown-row"><span><span class="dot" style="background:var(--c-estate)"></span>عقارات ← KWD</span><span id="realEstateKWDVal">0.000</span></div>
+        <div class="chart-box" style="margin-top:14px;"><canvas id="assetsPieChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-arrow-trend-up" style="color:var(--c-success)"></i> الدخل <button id="addIncomeBtn" class="btn btn-gold btn-sm" style="margin-inline-start:auto;"><i class="fas fa-plus"></i> إضافة</button></div>
+        <div id="incomeListContainer" class="scroll-list"></div>
+        <p class="gauge-note" style="margin-top:10px;">🔔 الدخل المتكرر يُضاف تلقائياً إلى الكاش عند حلول يوم الاستحقاق كل شهر.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Cashflow (income list already above; expenses here) ===== -->
+  <div class="section" id="sec-cashflow">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-receipt" style="color:var(--c-estate)"></i> المصروفات <button id="addExpenseBtn" class="btn btn-gold btn-sm" style="margin-inline-start:auto;"><i class="fas fa-plus"></i> إضافة</button></div>
+        <div class="totals-row"><span>🏷️ ثابت</span><b id="fixedTotal">0.000 KWD</b></div>
+        <div class="totals-row"><span>📉 متغير</span><b id="variableTotal">0.000 KWD</b></div>
+        <div class="totals-row"><span>💸 الإجمالي</span><b id="combinedTotal">0.000 KWD</b></div>
+        <hr class="sep">
+        <div id="expenseListContainer" class="scroll-list"></div>
+        <p class="gauge-note">* المصروف غير المتكرر يُخصم فوراً من الكاش. المتكرر يظهر في التحليل الشهري فقط.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-umbrella" style="color:var(--c-kwd)"></i> صندوق الطوارئ <span class="badge-soft">هدف 12 شهراً</span></div>
+        <div class="gauge-row"><span>🎯 الهدف</span><b id="emergencyTarget">0.000 KWD</b></div>
+        <div class="gauge-row"><span>💧 الرصيد النقدي الحالي</span><b id="emergencyCurrent">0.000 KWD</b></div>
+        <div class="progress-bar"><div class="progress-fill" id="emergencyFill" style="width:0%;"></div></div>
+        <div class="gauge-note" id="emergencyMonths">يغطي 0 شهر من المصروفات المتكررة.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Goals ===== -->
+  <div class="section" id="sec-goals">
     <div class="card">
-      <div class="card-title"><i class="fas fa-sliders" style="color: #6366f1;"></i> جرد وإدارة وتوزيع الأصول الحية</div>
-      
-      <div class="field-group">
-        <label><i class="fas fa-money-bill" style="color:var(--c-kwd)"></i> كاش بالدينار الكويتي (KWD)</label>
-        <input type="number" id="cashKWD" value="4500.00" step="100">
-      </div>
-      <div class="field-group">
-        <label><i class="fas fa-money-bill-1" style="color:var(--c-egp)"></i> كاش بالجنيه المصري (EGP)</label>
-        <input type="number" id="cashEGP" value="380000.00" step="5000">
-      </div>
-      <div class="field-group">
-        <label><i class="fas fa-cube" style="color:var(--c-gold)"></i> غطاء من الذهب الصافي (جرام)</label>
-        <input type="number" id="goldGrams" value="110.00" step="5">
-      </div>
-      <div class="field-group">
+      <div class="card-title"><i class="fas fa-bullseye" style="color:var(--c-gold)"></i> الأهداف المالية <button id="addGoalBtn" class="btn btn-gold btn-sm" style="margin-inline-start:auto;"><i class="fas fa-plus"></i> هدف جديد</button></div>
+      <div id="goalsContainer"></div>
+    </div>
+  </div>
 
+  <!-- ===== Analysis ===== -->
+  <div class="section" id="sec-analysis">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-robot" style="color:var(--c-gold)"></i> تحليل التدفق النقدي والتوصيات الذكية</div>
+      <div class="stat-mini-grid" id="statMiniGrid"></div>
+      <div id="cashFlowAnalysisContainer" class="recommend-box">جاري التحليل...</div>
+    </div>
+  </div>
 
+</div>
+
+<!-- ===== Bottom nav (mobile) ===== -->
+<nav class="bottom-nav" id="bottomNav">
+  <a href="#sec-overview" data-target="sec-overview"><i class="fas fa-house"></i>عامة</a>
+  <a href="#sec-assets" data-target="sec-assets"><i class="fas fa-coins"></i>أصول</a>
+  <a href="#sec-cashflow" data-target="sec-cashflow"><i class="fas fa-right-left"></i>تدفق</a>
+  <a href="#sec-goals" data-target="sec-goals"><i class="fas fa-bullseye"></i>أهداف</a>
+  <a href="#sec-analysis" data-target="sec-analysis"><i class="fas fa-chart-line"></i>تحليل</a>
+</nav>
+
+<!-- ===== Income Modal ===== -->
+<div id="incomeModal" class="modal">
+  <div class="modal-content">
+    <h3><i class="fas fa-arrow-trend-up" style="color:var(--c-success)"></i> إضافة دخل</h3>
+    <div class="modal-field">
+      <label>نوع الدخل</label>
+      <select id="incomeCategory">
+        <option value="Positive">نشط (راتب/عمل)</option>
+        <option value="Passive">سلبي (إيجار/إلخ)</option>
+        <option value="Investment">استثماري</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>الاسم / المصدر</label>
+      <input type="text" id="incomeSubtype" placeholder="مثال: راتب، إيجار شقة">
+    </div>
+    <div class="modal-field">
+      <label>المبلغ (KWD)</label>
+      <input type="number" id="incomeAmount" step="1" style="width:100%;">
+    </div>
+    <div class="modal-check">
+      <input type="checkbox" id="incomeOneTime"> <label for="incomeOneTime" style="margin:0;">دخل لمرة واحدة (يُضاف للكاش فوراً)</label>
+    </div>
+    <div class="modal-field" id="incomeDayWrap">
+      <label>يوم الاستحقاق الشهري (1-31)</label>
+      <input type="number" id="incomeDay" min="1" max="31" step="1" style="width:100%;">
+    </div>
+    <div class="modal-buttons">
+      <button id="incomeCancelBtn" class="btn btn-ghost">إلغاء</button>
+      <button id="incomeConfirmBtn" class="btn btn-gold">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Expense Modal ===== -->
+<div id="expenseModal" class="modal">
+  <div class="modal-content">
+    <h3><i class="fas fa-receipt" style="color:var(--c-estate)"></i> إضافة مصروف</h3>
+    <div class="modal-field">
+      <label>اسم المصروف</label>
+      <input type="text" id="expenseName" placeholder="مثال: إيجار، فواتير، تسوق" style="width:100%;">
+    </div>
+    <div class="modal-field">
+      <label>المبلغ (KWD)</label>
+      <input type="number" id="expenseAmountModal" step="1" style="width:100%;">
+    </div>
+    <div class="modal-field">
+      <label>التصنيف</label>
+      <select id="expenseType" style="width:100%;">
+        <option value="Fixed">ثابت</option>
+        <option value="Variable">متغير</option>
+      </select>
+    </div>
+    <div class="modal-check">
+      <input type="checkbox" id="expenseRecurring"> <label for="expenseRecurring" style="margin:0;">🔄 مصروف متكرر شهرياً</label>
+    </div>
+    <div class="modal-buttons">
+      <button id="expenseCancelBtn" class="btn btn-ghost">إلغاء</button>
+      <button id="expenseConfirmBtn" class="btn btn-gold">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Goal Modal ===== -->
+<div id="goalModal" class="modal">
+  <div class="modal-content">
+    <h3><i class="fas fa-bullseye" style="color:var(--c-gold)"></i> هدف مالي جديد</h3>
+    <div class="modal-field">
+      <label>اسم الهدف</label>
+      <input type="text" id="goalName" placeholder="مثال: سيارة جديدة، حج، دفعة أولى شقة" style="width:100%;">
+    </div>
+    <div class="modal-field">
+      <label>المبلغ المستهدف (KWD)</label>
+      <input type="number" id="goalTarget" step="50" style="width:100%;">
+    </div>
+    <div class="modal-buttons">
+      <button id="goalCancelBtn" class="btn btn-ghost">إلغاء</button>
+      <button id="goalConfirmBtn" class="btn btn-gold">إضافة الهدف</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ============================================================
+     الحالة الأساسية + التخزين
+  ============================================================ */
+  const STORAGE_KEY = 'zagloul_state_v4';
+  const TROY_OUNCE_G = 31.1034768;
+  // قيم احتياطية دقيقة (تُستخدم فقط إذا فشل الاتصال بمصادر الأسعار الحية) - محدثة يوليو 2026
+  const FALLBACK_KWD_TO_EGP = 159.5;
+  const FALLBACK_GOLD_24K_KWD = 40.60;
+
+  let state = {
+    assets: { cashKWD: 0, cashEGP: 0, goldGrams: 0, goldKarat: 21, realEstateEGP: 0 },
+    incomes: [],
+    expenses: [],
+    goals: [],
+    wealthHistory: [],
+    startingTotalWealth: 0,
+    rates: { kwdToEgp: FALLBACK_KWD_TO_EGP, goldGramKwd24: FALLBACK_GOLD_24K_KWD, lastLiveFetch: null, isLive: false }
+  };
+
+  let assetsPieChart = null, wealthChart = null;
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        assets: state.assets, incomes: state.incomes, expenses: state.expenses,
+        goals: state.goals, wealthHistory: state.wealthHistory,
+        startingTotalWealth: state.startingTotalWealth, rates: state.rates
+      }));
+    }catch(e){ console.warn('تعذر الحفظ محلياً', e); }
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const saved = JSON.parse(raw);
+      state.assets = Object.assign(state.assets, saved.assets || {});
+      state.incomes = saved.incomes || [];
+      state.expenses = saved.expenses || [];
+      state.goals = saved.goals || [];
+      state.wealthHistory = saved.wealthHistory || [];
+      state.startingTotalWealth = saved.startingTotalWealth || 0;
+      if(saved.rates){ state.rates.kwdToEgp = saved.rates.kwdToEgp || state.rates.kwdToEgp; state.rates.goldGramKwd24 = saved.rates.goldGramKwd24 || state.rates.goldGramKwd24; }
+    }catch(e){ console.warn('تعذر تحميل البيانات المحفوظة', e); }
+  }
+
+  function fillAssetInputs(){
+    document.getElementById('cashKWD').value = state.assets.cashKWD;
+    document.getElementById('cashEGP').value = state.assets.cashEGP;
+    document.getElementById('goldGrams').value = state.assets.goldGrams;
+    document.getElementById('goldKarat').value = String(state.assets.goldKarat || 21);
+    document.getElementById('realEstateEGP').value = state.assets.realEstateEGP;
+  }
+
+  /* ============================================================
+     أسعار الصرف والذهب اللحظية (fawazahmed0/currency-api - بدون مفتاح)
+  ============================================================ */
+  async function fetchCurrencyJson(code){
+    const urls = [
+      `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${code}.min.json`,
+      `https://latest.currency-api.pages.dev/v1/currencies/${code}.min.json`
+    ];
+    for(const url of urls){
+      try{
+        const res = await fetch(url, { cache: 'no-store' });
+        if(!res.ok) continue;
+        const data = await res.json();
+        if(data && data[code]) return data[code];
+      }catch(e){ /* جرّب المصدر التالي */ }
+    }
+    return null;
+  }
+
+  async function fetchLiveRates(){
+    const statusEl = document.getElementById('rateStatus');
+    statusEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري تحديث الأسعار...';
+
+    const [kwdData, xauData] = await Promise.all([fetchCurrencyJson('kwd'), fetchCurrencyJson('xau')]);
+
+    let ok = true;
+    if(kwdData && typeof kwdData.egp === 'number' && kwdData.egp > 0){
+      state.rates.kwdToEgp = kwdData.egp;
+    } else { ok = false; }
+
+    if(xauData && typeof xauData.kwd === 'number' && xauData.kwd > 0){
+      state.rates.goldGramKwd24 = xauData.kwd / TROY_OUNCE_G;
+    } else { ok = false; }
+
+    state.rates.isLive = ok;
+    state.rates.lastLiveFetch = Date.now();
+
+    updateRateDisplays();
+    statusEl.innerHTML = ok
+      ? '<i class="fas fa-circle-check" style="color:var(--c-success)"></i> أسعار حية'
+      : '<i class="fas fa-triangle-exclamation" style="color:var(--c-danger)"></i> تعذر التحديث — قيمة تقريبية';
+    saveState();
+    computeAndRender();
+  }
+
+  function updateRateDisplays(){
+    document.getElementById('kwdToEgpDisplay').innerText = state.rates.kwdToEgp.toFixed(3);
+    document.getElementById('goldPerGramKwd').innerText = state.rates.goldGramKwd24.toFixed(3);
+    document.getElementById('lastUpdateTime').innerText = new Date().toLocaleTimeString('ar-KW', { timeZone:'Asia/Kuwait', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }
+
+  /* ============================================================
+     حسابات الثروة
+  ============================================================ */
+  function computeWealth(){
+    const { cashKWD, cashEGP, goldGrams, goldKarat, realEstateEGP } = state.assets;
+    const { kwdToEgp, goldGramKwd24 } = state.rates;
+    const egpToKwd = 1 / kwdToEgp;
+    const karatFactor = (Number(goldKarat) || 24) / 24;
+
+    const cashKWDVal = cashKWD;
+    const cashEGPVal = cashEGP * egpToKwd;
+    const goldVal = goldGrams * goldGramKwd24 * karatFactor;
+    const realEstateVal = realEstateEGP * egpToKwd;
+    const total = cashKWDVal + cashEGPVal + goldVal + realEstateVal;
+
+    return { total, cashKWDVal, cashEGPVal, goldVal, realEstateVal };
+  }
+
+  function computeMonthlyRecurringExpenses(){
+    return state.expenses.filter(e => e.recurring).reduce((s,e) => s + e.amount, 0);
+  }
+  function computeMonthlyIncome(){
+    return state.incomes.reduce((s,i) => s + i.amount, 0);
+  }
+
+  /* ============================================================
+     العرض الرئيسي
+  ============================================================ */
+  function computeAndRender(recordHistory){
+    if(recordHistory === undefined) recordHistory = true;
+    const wealth = computeWealth();
+    const currentTotal = wealth.total;
+
+    if(recordHistory && isFinite(currentTotal)){
+      const last = state.wealthHistory[state.wealthHistory.length - 1];
+      if(!last || Math.abs(last.total - currentTotal) > 0.0005){
+        state.wealthHistory.push({ timestamp: Date.now(), total: currentTotal });
+        if(state.wealthHistory.length > 150) state.wealthHistory.shift();
+      }
+    }
+
+    if(state.startingTotalWealth === 0 && currentTotal > 0){
+      state.startingTotalWealth = currentTotal;
+    }
+    const start = state.startingTotalWealth || currentTotal;
+    const pnl = currentTotal - start;
+    const pct = start ? (pnl / start) * 100 : 0;
+
+    document.getElementById('totalWealthDisplay').innerHTML = currentTotal.toFixed(3) + ' <small>KWD</small>';
+    document.getElementById('startingWealthSpan').innerText = start.toFixed(3) + ' KWD';
+    document.getElementById('pnlAmount').innerText = (pnl>=0?'+':'') + pnl.toFixed(3) + ' KWD';
+
+    const pnlBadge = document.getElementById('pnlBadge');
+    if(Math.abs(pct) < 0.001){
+      pnlBadge.className = 'pnl-badge pnl-flat';
+      pnlBadge.innerHTML = '<i class="fas fa-minus"></i> لا تغيير منذ البداية';
+    } else if(pnl >= 0){
+      pnlBadge.className = 'pnl-badge pnl-up';
+      pnlBadge.innerHTML = `<i class="fas fa-arrow-trend-up"></i> +${pct.toFixed(2)}% منذ البداية`;
+    } else {
+      pnlBadge.className = 'pnl-badge pnl-down';
+      pnlBadge.innerHTML = `<i class="fas fa-arrow-trend-down"></i> ${pct.toFixed(2)}% منذ البداية`;
+    }
+
+    const goldGramsEquivalent = state.rates.goldGramKwd24 > 0 ? currentTotal / state.rates.goldGramKwd24 : 0;
+    document.getElementById('goldWealthDisplay').innerHTML = goldGramsEquivalent.toFixed(2) + ' <small>جرام ذهب 24K</small>';
+
+    document.getElementById('cashKWDVal').innerText = wealth.cashKWDVal.toFixed(3);
+    document.getElementById('cashEGPVal').innerText = wealth.cashEGPVal.toFixed(3);
+    document.getElementById('goldKWDVal').innerText = wealth.goldVal.toFixed(3);
+    document.getElementById('realEstateKWDVal').innerText = wealth.realEstateVal.toFixed(3);
+
+    let fixedSum = 0, variableSum = 0;
+    state.expenses.forEach(exp => { if(exp.isFixed) fixedSum += exp.amount; else variableSum += exp.amount; });
+    document.getElementById('fixedTotal').innerText = fixedSum.toFixed(3) + ' KWD';
+    document.getElementById('variableTotal').innerText = variableSum.toFixed(3) + ' KWD';
+    document.getElementById('combinedTotal').innerText = (fixedSum + variableSum).toFixed(3) + ' KWD';
+
+    updateAssetsPieChart(wealth);
+    updateWealthHistoryChart();
+    renderIncomeList();
+    renderExpenseList();
+    renderGoals();
+    updateCashFlowAnalysis();
+
+    saveState();
+  }
+
+  /* ============================================================
+     الرسوم البيانية
+  ============================================================ */
+  function updateAssetsPieChart(wealth){
+    const ctx = document.getElementById('assetsPieChart').getContext('2d');
+    const data = [wealth.cashKWDVal, wealth.cashEGPVal, wealth.goldVal, wealth.realEstateVal];
+    if(assetsPieChart){ assetsPieChart.data.datasets[0].data = data; assetsPieChart.update(); return; }
+    assetsPieChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['كاش KWD','كاش EGP','ذهب','عقارات'],
+        datasets: [{ data, backgroundColor: ['#38bdf8','#34d399','#d4af37','#fb7185'], borderColor:'#111522', borderWidth:2 }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false, cutout:'62%',
+        plugins:{ legend:{ position:'bottom', labels:{ color:'#8d96ac', font:{family:'Tajawal'}, padding:14, usePointStyle:true } } }
+      }
+    });
+  }
+
+  function updateWealthHistoryChart(){
+    const history = state.wealthHistory.slice(-100);
+    const labels = history.map(p => new Date(p.timestamp).toLocaleTimeString('ar-KW', { timeZone:'Asia/Kuwait', hour:'2-digit', minute:'2-digit' }));
+    const data = history.map(p => p.total);
+    const ctx = document.getElementById('wealthHistoryChart').getContext('2d');
+    if(wealthChart){ wealthChart.data.labels = labels; wealthChart.data.datasets[0].data = data; wealthChart.update(); return; }
+    wealthChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets: [{
+        label:'إجمالي الثروة (KWD)', data,
+        borderColor:'#d4af37', backgroundColor:'rgba(212,175,55,0.12)',
+        tension:0.3, fill:true, pointRadius:0, borderWidth:2.5
+      }]},
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          x:{ ticks:{ color:'#5c6478', maxTicksLimit:8, font:{size:10} }, grid:{ color:'rgba(255,255,255,0.04)' } },
+          y:{ ticks:{ color:'#5c6478', font:{size:10} }, grid:{ color:'rgba(255,255,255,0.04)' } }
+        },
+        plugins:{ legend:{ display:false } }
+      }
+    });
+  }
+
+  /* ============================================================
+     الدخل
+  ============================================================ */
+  function renderIncomeList(){
+    const container = document.getElementById('incomeListContainer');
+    if(!state.incomes.length){
+      container.innerHTML = '<div class="list-empty">➕ لا يوجد دخل مسجّل بعد</div>';
+      return;
+    }
+    const catLabel = { Positive:'نشط', Passive:'سلبي', Investment:'استثماري' };
+    container.innerHTML = state.incomes.map(inc => `
+      <div class="list-row">
+        <div class="info">
+          <span class="name">${escapeHtml(inc.subType)}</span>
+          <span class="meta">${catLabel[inc.typeCategory] || inc.typeCategory} ${inc.dueDay ? '• يوم ' + inc.dueDay + ' من كل شهر' : '• لمرة واحدة'}</span>
+        </div>
+        <div class="amount">
+          <span>${inc.amount.toFixed(2)} KWD</span>
+          <button class="icon-btn delete-income" data-id="${inc.id}"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>`).join('');
+    container.querySelectorAll('.delete-income').forEach(btn => btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      state.incomes = state.incomes.filter(i => i.id !== id);
+      computeAndRender();
+      notify('🗑️ تم حذف الدخل');
+    }));
+  }
+
+  /* ============================================================
+     المصروفات
+  ============================================================ */
+  function renderExpenseList(){
+    const container = document.getElementById('expenseListContainer');
+    if(!state.expenses.length){
+      container.innerHTML = '<div class="list-empty">➕ لا يوجد مصروف مسجّل بعد</div>';
+      return;
+    }
+    container.innerHTML = state.expenses.map(exp => `
+      <div class="list-row">
+        <div class="info">
+          <span class="name">${escapeHtml(exp.name)}</span>
+          <span class="meta">
+            <span class="tag ${exp.isFixed ? 'tag-fixed' : 'tag-variable'}">${exp.isFixed ? 'ثابت' : 'متغير'}</span>
+            ${exp.recurring ? '<span class="tag tag-recurring">🔄 متكرر</span>' : ''}
+          </span>
+        </div>
+        <div class="amount">
+          <span>${exp.amount.toFixed(2)} KWD</span>
+          <button class="icon-btn delete-expense" data-id="${exp.id}"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>`).join('');
+    container.querySelectorAll('.delete-expense').forEach(btn => btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      state.expenses = state.expenses.filter(e => e.id !== id);
+      computeAndRender();
+      notify('🗑️ تم حذف المصروف');
+    }));
+  }
+
+  /* ============================================================
+     الأهداف
+  ============================================================ */
+  function renderGoals(){
+    const container = document.getElementById('goalsContainer');
+    if(!state.goals.length){
+      container.innerHTML = '<div class="list-empty">✨ لا توجد أهداف مالية بعد — أضف هدفاً لتتبع تقدمك</div>';
+      return;
+    }
+    container.innerHTML = state.goals.map(goal => {
+      const pct = goal.target > 0 ? Math.min(100, (goal.saved / goal.target) * 100) : 0;
+      return `
+      <div class="goal-item">
+        <div class="goal-head">
+          <span class="name">🎯 ${escapeHtml(goal.name)}</span>
+          <button class="icon-btn delete-goal" data-id="${goal.id}"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        <div class="goal-nums"><span>${goal.saved.toFixed(2)} KWD</span><span>${goal.target.toFixed(2)} KWD</span></div>
+        <div class="progress-bar"><div class="progress-fill gold" style="width:${pct}%;"></div></div>
+        <div class="goal-contribute">
+          <input type="number" id="goalAdd-${goal.id}" placeholder="مبلغ للإضافة" step="10">
+          <button class="btn btn-sm contribute-goal" data-id="${goal.id}">إضافة من الكاش</button>
+        </div>
+      </div>`;
+    }).join('');
+    container.querySelectorAll('.delete-goal').forEach(btn => btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      state.goals = state.goals.filter(g => g.id !== id);
+      computeAndRender();
+      notify('🗑️ تم حذف الهدف');
+    }));
+    container.querySelectorAll('.contribute-goal').forEach(btn => btn.addEventListener('click', () => {
+      const goalId = Number(btn.dataset.id);
+      const input = document.getElementById(`goalAdd-${goalId}`);
+      const addVal = parseFloat(input.value);
+      if(isNaN(addVal) || addVal <= 0){ notify('❌ أدخل مبلغاً صحيحاً', true); return; }
+      if(state.assets.cashKWD < addVal){ notify('❌ رصيد الكاش بالدينار غير كافٍ', true); return; }
+      state.assets.cashKWD -= addVal;
+      const idx = state.goals.findIndex(g => g.id === goalId);
+      if(idx !== -1) state.goals[idx].saved = Math.min(state.goals[idx].target, state.goals[idx].saved + addVal);
+      fillAssetInputs();
+      computeAndRender();
+      notify(`✅ تم إضافة ${addVal.toFixed(2)} KWD إلى الهدف`);
+    }));
+  }
+
+  /* ============================================================
+     تحليل التدفق النقدي + صندوق الطوارئ
+  ============================================================ */
+  function updateCashFlowAnalysis(){
+    const monthlyIncome = computeMonthlyIncome();
+    const monthlyRecurringExp = computeMonthlyRecurringExpenses();
+    const netFlow = monthlyIncome - monthlyRecurringExp;
+    const currentCash = state.assets.cashKWD;
+    const monthsCover = monthlyRecurringExp > 0 ? (currentCash / monthlyRecurringExp) : (currentCash > 0 ? 99 : 0);
+
+    document.getElementById('statMiniGrid').innerHTML = `
+      <div class="stat-mini"><div class="lbl">الدخل الشهري</div><div class="val" style="color:var(--c-success)">${monthlyIncome.toFixed(2)} KWD</div></div>
+      <div class="stat-mini"><div class="lbl">المصروفات المتكررة</div><div class="val" style="color:var(--c-estate)">${monthlyRecurringExp.toFixed(2)} KWD</div></div>
+      <div class="stat-mini"><div class="lbl">صافي التدفق الشهري</div><div class="val" style="color:${netFlow>=0?'var(--c-success)':'var(--c-danger)'}">${netFlow>=0?'+':''}${netFlow.toFixed(2)} KWD</div></div>
+      <div class="stat-mini"><div class="lbl">تغطية الطوارئ</div><div class="val" style="color:var(--c-gold-bright)">${monthsCover >= 99 ? '12+' : monthsCover.toFixed(1)} شهر</div></div>
+    `;
+
+    let lines = [];
+    if(netFlow < 0){
+      lines.push(`<div class="rec-line"><i class="fas fa-triangle-exclamation"></i> التدفق النقدي الشهري سالب (${netFlow.toFixed(2)} KWD) — راجع المصروفات المتكررة أو زد مصادر الدخل.</div>`);
+    } else if(netFlow > 0) {
+      lines.push(`<div class="rec-line"><i class="fas fa-circle-check"></i> فائض شهري قدره ${netFlow.toFixed(2)} KWD — يُنصح بتوجيهه لصندوق الطوارئ أو الأهداف.</div>`);
+    } else {
+      lines.push(`<div class="rec-line"><i class="fas fa-circle-info"></i> الدخل والمصروفات المتكررة متعادلان تقريباً.</div>`);
+    }
+    if(monthlyRecurringExp > 0){
+      if(monthsCover < 3) lines.push(`<div class="rec-line"><i class="fas fa-triangle-exclamation" style="color:var(--c-danger)"></i> صندوق الطوارئ يغطي ${monthsCover.toFixed(1)} شهر فقط — أولوية عالية لزيادة الكاش المتاح.</div>`);
+      else if(monthsCover < 6) lines.push(`<div class="rec-line"><i class="fas fa-circle-exclamation"></i> صندوق الطوارئ يغطي ${monthsCover.toFixed(1)} شهر — استهدف 6-12 شهراً للاطمئنان الكامل.</div>`);
+      else lines.push(`<div class="rec-line"><i class="fas fa-shield-halved" style="color:var(--c-success)"></i> صندوق الطوارئ في وضع ممتاز (${monthsCover.toFixed(1)} شهر تغطية).</div>`);
+    }
+    const goldShare = computeWealth().goldVal / (computeWealth().total || 1);
+    if(goldShare < 0.05) lines.push(`<div class="rec-line"><i class="fas fa-gem"></i> حصة الذهب من ثروتك أقل من 5% — يمكن زيادتها قليلاً كحماية من التضخم.</div>`);
+    else if(goldShare > 0.5) lines.push(`<div class="rec-line"><i class="fas fa-scale-balanced"></i> أكثر من 50% من ثروتك في الذهب — فكّر في تنويع الأصول لتقليل التقلب.</div>`);
+
+    document.getElementById('cashFlowAnalysisContainer').innerHTML = lines.join('');
+
+    const emergencyTarget = monthlyRecurringExp * 12;
+    document.getElementById('emergencyTarget').innerText = emergencyTarget.toFixed(3) + ' KWD';
+    document.getElementById('emergencyCurrent').innerText = currentCash.toFixed(3) + ' KWD';
+    const fillPct = emergencyTarget > 0 ? Math.min(100, (currentCash / emergencyTarget) * 100) : (currentCash > 0 ? 100 : 0);
+    document.getElementById('emergencyFill').style.width = fillPct + '%';
+    document.getElementById('emergencyMonths').innerText = monthlyRecurringExp > 0
+      ? `يغطي الرصيد الحالي ${monthsCover.toFixed(1)} شهر من المصروفات المتكررة.`
+      : 'أضف مصروفات متكررة لحساب هدف صندوق الطوارئ.';
+  }
+
+  /* ============================================================
+     معالجة الدخل المتكرر تلقائياً
+  ============================================================ */
+  function processRecurringIncome(){
+    const today = new Date();
+    const currentDay = today.getDate();
+    const monthKey = `${today.getFullYear()}-${today.getMonth()}`;
+    let changed = false;
+    state.incomes.forEach(inc => {
+      if(inc.dueDay && inc.dueDay === currentDay && inc.lastProcessedMonth !== monthKey){
+        state.assets.cashKWD += inc.amount;
+        inc.lastProcessedMonth = monthKey;
+        changed = true;
+        notify(`💰 تم استلام الدخل: ${inc.subType} (${inc.amount.toFixed(2)} KWD)`);
+      }
+    });
+    if(changed){ fillAssetInputs(); computeAndRender(); }
+  }
+
+  /* ============================================================
+     أدوات مساعدة
+  ============================================================ */
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.innerText = str == null ? '' : str;
+    return d.innerHTML;
+  }
+
+  function notify(msg, isError){
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (isError ? ' error' : '');
+    toast.innerHTML = `<i class="fas ${isError ? 'fa-circle-exclamation' : 'fa-bell'}"></i> ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4200);
+  }
+
+  /* ============================================================
+     ربط الأحداث
+  ============================================================ */
+  function bindAssetInputs(){
+    ['cashKWD','cashEGP','goldGrams','realEstateEGP'].forEach(id => {
+      document.getElementById(id).addEventListener('input', e => {
+        state.assets[id] = parseFloat(e.target.value) || 0;
+        computeAndRender();
+      });
+    });
+    document.getElementById('goldKarat').addEventListener('change', e => {
+      state.assets.goldKarat = parseInt(e.target.value, 10) || 24;
+      computeAndRender();
+    });
+  }
+
+  function openModal(id){ document.getElementById(id).classList.add('open'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+  function bindIncomeModal(){
+    const modal = 'incomeModal';
+    document.getElementById('addIncomeBtn').addEventListener('click', () => openModal(modal));
+    document.getElementById('incomeCancelBtn').addEventListener('click', () => closeModal(modal));
+    document.getElementById('incomeOneTime').addEventListener('change', e => {
+      document.getElementById('incomeDayWrap').style.display = e.target.checked ? 'none' : 'block';
+    });
+    document.getElementById('incomeConfirmBtn').addEventListener('click', () => {
+      const cat = document.getElementById('incomeCategory').value;
+      const sub = document.getElementById('incomeSubtype').value.trim();
+      const amount = parseFloat(document.getElementById('incomeAmount').value);
+      const oneTime = document.getElementById('incomeOneTime').checked;
+      const day = parseInt(document.getElementById('incomeDay').value, 10);
+
+      if(!sub || isNaN(amount) || amount <= 0){ notify('❌ يرجى إدخال بيانات صحيحة', true); return; }
+      if(!oneTime && (isNaN(day) || day < 1 || day > 31)){ notify('❌ يرجى إدخال يوم استحقاق صالح (1-31)', true); return; }
+
+      if(oneTime){
+        state.assets.cashKWD += amount;
+        fillAssetInputs();
+        notify(`✅ تم إضافة دخل لمرة واحدة: ${sub} (${amount.toFixed(2)} KWD)`);
+      } else {
+        state.incomes.push({ id: Date.now(), typeCategory: cat, subType: sub, amount, dueDay: day, lastProcessedMonth: null });
+        notify(`✅ تم إضافة الدخل المتكرر "${sub}"`);
+      }
+      computeAndRender();
+      document.getElementById('incomeSubtype').value = '';
+      document.getElementById('incomeAmount').value = '';
+      document.getElementById('incomeDay').value = '';
+      document.getElementById('incomeOneTime').checked = false;
+      document.getElementById('incomeDayWrap').style.display = 'block';
+      closeModal(modal);
+    });
+  }
+
+  function bindExpenseModal(){
+    const modal = 'expenseModal';
+    document.getElementById('addExpenseBtn').addEventListener('click', () => openModal(modal));
+    document.getElementById('expenseCancelBtn').addEventListener('click', () => closeModal(modal));
+    document.getElementById('expenseConfirmBtn').addEventListener('click', () => {
+      const name = document.getElementById('expenseName').value.trim();
+      const amount = parseFloat(document.getElementById('expenseAmountModal').value);
+      const isFixed = document.getElementById('expenseType').value === 'Fixed';
+      const recurring = document.getElementById('expenseRecurring').checked;
+
+      if(!name || isNaN(amount) || amount <= 0){ notify('❌ يرجى إدخال بيانات صحيحة', true); return; }
+
+      state.expenses.push({ id: Date.now(), name, amount, isFixed, recurring });
+      if(!recurring){
+        state.assets.cashKWD = Math.max(0, state.assets.cashKWD - amount);
+        fillAssetInputs();
+      }
+      computeAndRender();
+      notify(`💸 تم إضافة مصروف: ${name} (${amount.toFixed(2)} KWD)`);
+      document.getElementById('expenseName').value = '';
+      document.getElementById('expenseAmountModal').value = '';
+      document.getElementById('expenseRecurring').checked = false;
+      closeModal(modal);
+    });
+  }
+
+  function bindGoalModal(){
+    const modal = 'goalModal';
+    document.getElementById('addGoalBtn').addEventListener('click', () => openModal(modal));
+    document.getElementById('goalCancelBtn').addEventListener('click', () => closeModal(modal));
+    document.getElementById('goalConfirmBtn').addEventListener('click', () => {
+      const name = document.getElementById('goalName').value.trim();
+      const target = parseFloat(document.getElementById('goalTarget').value);
+      if(!name || isNaN(target) || target <= 0){ notify('❌ يرجى إدخال بيانات صحيحة', true); return; }
+      state.goals.push({ id: Date.now(), name, target, saved: 0 });
+      computeAndRender();
+      notify(`🎯 تم إضافة هدف "${name}"`);
+      document.getElementById('goalName').value = '';
+      document.getElementById('goalTarget').value = '';
+      closeModal(modal);
+    });
+  }
+
+  document.querySelectorAll('.modal').forEach(m => {
+    m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+  });
+
+  function bindHeaderActions(){
+    document.getElementById('manualRefreshBtn').addEventListener('click', fetchLiveRates);
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if(confirm('سيتم حذف جميع البيانات المحفوظة (الأصول، الدخل، المصروفات، الأهداف). هل أنت متأكد؟')){
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const payload = { assets: state.assets, incomes: state.incomes, expenses: state.expenses, goals: state.goals, wealthHistory: state.wealthHistory, startingTotalWealth: state.startingTotalWealth, rates: state.rates, exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `zagloul-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      notify('📦 تم تنزيل النسخة الاحتياطية');
+    });
+
+    document.getElementById('importInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const data = JSON.parse(reader.result);
+          state.assets = Object.assign(state.assets, data.assets || {});
+          state.incomes = data.incomes || [];
+          state.expenses = data.expenses || [];
+          state.goals = data.goals || [];
+          state.wealthHistory = data.wealthHistory || [];
+          state.startingTotalWealth = data.startingTotalWealth || 0;
+          fillAssetInputs();
+          computeAndRender();
+          notify('✅ تم استيراد النسخة الاحتياطية بنجاح');
+        }catch(err){ notify('❌ ملف النسخة الاحتياطية غير صالح', true); }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  function bindBottomNav(){
+    const links = document.querySelectorAll('#bottomNav a');
+    const sections = Array.from(links).map(a => document.getElementById(a.dataset.target));
+    if(!('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          links.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`#bottomNav a[data-target="${entry.target.id}"]`);
+          if(active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px' });
+    sections.forEach(s => s && io.observe(s));
+  }
+
+  /* ============================================================
+     التشغيل
+  ============================================================ */
+  function init(){
+    loadState();
+    fillAssetInputs();
+    updateRateDisplays();
+    bindAssetInputs();
+    bindIncomeModal();
+    bindExpenseModal();
+    bindGoalModal();
+    bindHeaderActions();
+    bindBottomNav();
+    computeAndRender(false);
+    fetchLiveRates();
+    processRecurringIncome();
+    setInterval(fetchLiveRates, 60000);
+    setInterval(processRecurringIncome, 60000);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
