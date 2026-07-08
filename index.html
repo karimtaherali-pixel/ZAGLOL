@@ -218,6 +218,42 @@ hr.sep { border: none; border-top: 1px solid var(--border-soft); margin: 13px 0;
 }
 @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 250% 50%; } }
 
+/* ================================================================
+   GWB (Global Wealth Basket) Card
+================================================================ */
+.gwb-card { position: relative; overflow: hidden; }
+.gwb-card::before {
+  content: '';
+  position: absolute; top: -30px; left: -30px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+.gwb-basket-row {
+  display: flex; flex-wrap: wrap; gap: 8px; width: 100%;
+  padding: 8px 0 0;
+}
+.gwb-comp {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 8px; padding: 4px 9px; font-size: 0.7rem;
+  color: #a5b4fc; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;
+  white-space: nowrap;
+  transition: background var(--transition-fast);
+}
+.gwb-comp:hover { background: rgba(99,102,241,0.2); }
+
+/* GWB info panel in live-bar */
+.gwb-live-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 10px; padding: 5px 13px; font-size: 0.83rem; color: #a5b4fc;
+}
+.gwb-live-value {
+  font-weight: 900; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem; color: #c7d2fe;
+}
+
 .chart-box { position: relative; height: 190px; width: 100%; }
 .chart-box.tall { height: 230px; }
 
@@ -588,7 +624,10 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
 ================================================================ -->
 <div class="live-bar">
   <div class="rate-item"><i class="fas fa-money-bill-transfer" style="color:var(--c-kwd)"></i> 1 KWD = <span id="kwdToEgpDisplay" class="rate-value kwd">---</span>&nbsp;EGP</div>
-  <div class="rate-item"><i class="fas fa-gem" style="color:var(--c-gold)"></i> جرام الذهب (عيار 24) = <span id="goldPerGramKwd" class="rate-value gold">---</span>&nbsp;KWD</div>
+  <div class="rate-item"><i class="fas fa-gem" style="color:var(--c-gold)"></i> جرام ذهب 24K = <span id="goldPerGramKwd" class="rate-value gold">---</span>&nbsp;KWD</div>
+  <div class="gwb-live-item" data-tooltip="السلة العالمية الدقيقة: 40% USD · 25% EUR · 15% XAU · 10% CNY · 5% GBP · 5% JPY">
+    <i class="fas fa-layer-group"></i> 1 GWB = <span id="gwbRateTicker" class="gwb-live-value">---</span>&nbsp;KWD
+  </div>
   <div class="update-meta">
     <span id="rateStatus"><i class="fas fa-circle-notch fa-spin"></i> جاري التحديث...</span>
     <span><i class="far fa-clock"></i>&nbsp;<span id="lastUpdateTime">--:--:--</span></span>
@@ -611,14 +650,25 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
         <span>الربح/الخسارة: <b id="pnlAmount">0.000 KWD</b></span>
       </div>
     </div>
-    <div class="card hero-card" style="border-color:rgba(212,175,55,0.2);">
-      <div class="card-title"><i class="fas fa-scale-balanced"></i> الثروة الحقيقية (بمعادل الذهب)</div>
-      <div class="huge" id="goldWealthDisplay" style="color:var(--c-gold-bright);">0.00&nbsp;<small>جرام ذهب 24K</small></div>
-      <div class="pnl-badge" style="background:rgba(212,175,55,0.08);color:var(--c-gold-bright);margin-top:7px;display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:700;padding:6px 13px;border-radius:12px;">
-        <i class="fas fa-shield-halved"></i> مقياس مجرّد من تضخم العملات
+    <div class="card hero-card gwb-card" style="border-color:rgba(99,102,241,0.28);background:linear-gradient(160deg,rgba(99,102,241,0.07) 0%,rgba(16,20,36,0.78) 100%);">
+      <div class="card-title"><i class="fas fa-layer-group" style="color:#818cf8;"></i> الثروة بالسلة العالمية (GWB) <span class="badge-soft" style="color:#818cf8;border-color:rgba(99,102,241,0.25);">SDR+ذهب</span></div>
+      <div class="huge" id="gwbWealthDisplay" style="color:#a5b4fc;font-size:1.95rem;">0.000&nbsp;<small style="color:#6b7280;">GWB</small></div>
+      <div class="pnl-badge" id="gwbPnlBadge" style="background:rgba(99,102,241,0.1);color:#818cf8;margin-top:7px;display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:700;padding:6px 13px;border-radius:12px;">
+        <i class="fas fa-globe"></i> مقياس محايد من التضخم وطباعة العملات
       </div>
-      <div class="hero-foot">
-        <span>يعادل ثروتك لو حُفظت كلها ذهباً — مقياس حقيقي عبر الزمن بعيداً عن انخفاض قيمة العملات.</span>
+      <div class="hero-foot" style="flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <span>سعر وحدة GWB: <b id="gwbRateDisplay" style="color:#a5b4fc;font-family:'Plus Jakarta Sans',sans-serif;">--- KWD</b></span>
+          <span>Δ من البداية: <b id="gwbPnlDisplay" style="font-family:'Plus Jakarta Sans',sans-serif;">---</b></span>
+        </div>
+        <div class="gwb-basket-row" id="gwbBasketRow">
+          <span class="gwb-comp" title="40% USD">🇺🇸<span id="gwbUsdRate">---</span></span>
+          <span class="gwb-comp" title="25% EUR">🇪🇺<span id="gwbEurRate">---</span></span>
+          <span class="gwb-comp" title="15% XAU">🪙<span id="gwbGoldRate">---</span></span>
+          <span class="gwb-comp" title="10% CNY">🇨🇳<span id="gwbCnyRate">---</span></span>
+          <span class="gwb-comp" title="5% GBP">💷<span id="gwbGbpRate">---</span></span>
+          <span class="gwb-comp" title="5% JPY">🇯🇵<span id="gwbJpyRate">---</span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -972,13 +1022,62 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
   /* ----------------------------------------------------------------
      Constants
   ---------------------------------------------------------------- */
-  const STORAGE_KEY     = 'zagloul_v5';
+  const STORAGE_KEY     = 'zagloul_v6';
   const TROY_OZ_G       = 31.1034768;
   const HIJRI_YEAR_DAYS = 354;
   const NISAB_GRAMS_24K = 85;
   const ZAKAT_RATE      = 0.025;
-  const FB_KWD_EGP      = 159.5;  // fallback rates — updated July 2026
-  const FB_GOLD_KWD     = 40.60;
+
+  // Fallback rates vs KWD — updated July 2026
+  const FB_KWD_EGP  = 159.5;
+  const FB_GOLD_KWD = 40.60;    // XAU per gram in KWD
+
+  /*
+   * ─── GWB — Global Wealth Basket ──────────────────────────────────
+   * SDR-inspired basket augmented with physical gold.
+   * Weights are fixed policy weights, rates are live from API.
+   *
+   *  Component  | Weight |  Rationale
+   *  -----------|--------|------------------------------------------
+   *  USD        |  40%   | Primary reserve + global trade anchor
+   *  EUR        |  25%   | Hedge vs USD monopoly; EU economic depth
+   *  XAU (gold) |  15%   | Hard-asset inflation shield
+   *  CNY        |  10%   | 2nd-largest economy; supply-chain nexus
+   *  GBP        |   5%   | Historic financial centre; London depth
+   *  JPY        |   5%   | Traditional safe-haven; crisis hedge
+   *  -----------|--------|------------------------------------------
+   *  Total      | 100%   |
+   *
+   *  Formula:
+   *    1 GWB (in KWD) =
+   *      0.40 × (1 USD in KWD)
+   *    + 0.25 × (1 EUR in KWD)
+   *    + 0.15 × (1 gram XAU in KWD)      ← gold per gram
+   *    + 0.10 × (1 CNY in KWD)
+   *    + 0.05 × (1 GBP in KWD)
+   *    + 0.05 × (1 JPY in KWD)
+   *
+   *  Wealth in GWB = Total Wealth (KWD) ÷ GWB rate (KWD)
+   * ──────────────────────────────────────────────────────────────────
+   */
+  const GWB_WEIGHTS = Object.freeze({
+    usd: 0.40,
+    eur: 0.25,
+    xau: 0.15,   // gold per gram
+    cny: 0.10,
+    gbp: 0.05,
+    jpy: 0.05
+  });
+
+  // Fallback unit values in KWD (July 2026 approximations)
+  const GWB_FALLBACKS = Object.freeze({
+    usd: 0.3071,   // 1 USD in KWD
+    eur: 0.3367,   // 1 EUR in KWD
+    xau: 40.60,    // 1 gram gold 24K in KWD
+    cny: 0.0424,   // 1 CNY in KWD
+    gbp: 0.3915,   // 1 GBP in KWD
+    jpy: 0.00206   // 1 JPY in KWD
+  });
 
   /* ----------------------------------------------------------------
      State
@@ -995,11 +1094,16 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
     wealthHistory:  [],
     startingTotalWealth: 0,
     rates: {
-      kwdToEgp:     FB_KWD_EGP,
+      kwdToEgp:      FB_KWD_EGP,
       goldGramKwd24: FB_GOLD_KWD,
       isLive: false,
       lastFetch: null
-    }
+    },
+    // GWB live component rates — unit value in KWD
+    gwbRates: { ...GWB_FALLBACKS },
+    // GWB history for cross-time wealth comparison
+    gwbHistory: [],
+    startingGwbWealth: 0
   };
 
   let assetsPieChart = null;
@@ -1018,7 +1122,10 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
         bullions: state.bullions, zakatGoldPrice: state.zakatGoldPrice,
         wealthHistory: state.wealthHistory,
         startingTotalWealth: state.startingTotalWealth,
-        rates: state.rates
+        rates: state.rates,
+        gwbRates: state.gwbRates,
+        gwbHistory: state.gwbHistory,
+        startingGwbWealth: state.startingGwbWealth
       }));
     } catch (e) { console.warn('Save failed', e); }
   }
@@ -1042,6 +1149,11 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
         state.rates.kwdToEgp      = s.rates.kwdToEgp      || FB_KWD_EGP;
         state.rates.goldGramKwd24 = s.rates.goldGramKwd24 || FB_GOLD_KWD;
       }
+      if (s.gwbRates) {
+        state.gwbRates = Object.assign({ ...GWB_FALLBACKS }, s.gwbRates);
+      }
+      state.gwbHistory       = s.gwbHistory       || [];
+      state.startingGwbWealth = s.startingGwbWealth || 0;
     } catch (e) { console.warn('Load failed', e); }
   }
 
@@ -1076,21 +1188,49 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
     const statusEl = document.getElementById('rateStatus');
     statusEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري التحديث...';
 
+    /*
+     * Fetch strategy:
+     *  - kwd  → gives us EGP rate AND all basket fiat rates in one call
+     *           (kwd.usd, kwd.eur, kwd.cny, kwd.gbp, kwd.jpy)
+     *  - xau  → gold: xauData.kwd = price of 1 troy oz in KWD
+     *
+     * All 6 basket components are now fetched in 2 parallel requests.
+     */
     const [kwdData, xauData] = await Promise.all([
       fetchCurrencyJson('kwd'),
       fetchCurrencyJson('xau')
     ]);
 
     let allOk = true;
+
+    // ── EGP rate ──────────────────────────────────────────────────
     if (kwdData && typeof kwdData.egp === 'number' && kwdData.egp > 0) {
       state.rates.kwdToEgp = kwdData.egp;
     } else { allOk = false; }
 
+    // ── Gold rate ─────────────────────────────────────────────────
+    let goldGramKwd = state.gwbRates.xau;  // keep last known
     if (xauData && typeof xauData.kwd === 'number' && xauData.kwd > 0) {
-      state.rates.goldGramKwd24 = xauData.kwd / TROY_OZ_G;
+      goldGramKwd = xauData.kwd / TROY_OZ_G;
+      state.rates.goldGramKwd24 = goldGramKwd;
     } else { allOk = false; }
 
-    state.rates.isLive  = allOk;
+    /*
+     * ── GWB basket fiat rates ────────────────────────────────────
+     * kwdData contains 1 KWD expressed in each currency (e.g. kwdData.usd = 3.257).
+     * We need the inverse: how many KWD = 1 unit of each currency.
+     * 1 USD in KWD = 1 / kwdData.usd
+     */
+    const fiats = ['usd','eur','cny','gbp','jpy'];
+    fiats.forEach(cur => {
+      if (kwdData && typeof kwdData[cur] === 'number' && kwdData[cur] > 0) {
+        state.gwbRates[cur] = 1 / kwdData[cur];
+      }
+      // else keep fallback / last known
+    });
+    state.gwbRates.xau = goldGramKwd;
+
+    state.rates.isLive    = allOk;
     state.rates.lastFetch = Date.now();
 
     refreshRateTicker();
@@ -1108,6 +1248,106 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
     document.getElementById('lastUpdateTime').innerText   = new Date().toLocaleTimeString(
       'ar-KW', { timeZone: 'Asia/Kuwait', hour: '2-digit', minute: '2-digit', second: '2-digit' }
     );
+    // Update GWB rate in live bar
+    const gwbRate = computeGwbRate();
+    const gwbTickerEl = document.getElementById('gwbRateTicker');
+    if (gwbTickerEl) gwbTickerEl.innerText = gwbRate.toFixed(4);
+  }
+
+  /* ----------------------------------------------------------------
+     GWB — Global Wealth Basket
+     ─────────────────────────────────────────────────────────────────
+     1 GWB (KWD) = Σ weight_i × unitValue_i(KWD)
+       = 0.40 × usd_kwd
+       + 0.25 × eur_kwd
+       + 0.15 × xau_gram_kwd      ← gold per gram, not per oz
+       + 0.10 × cny_kwd
+       + 0.05 × gbp_kwd
+       + 0.05 × jpy_kwd
+
+     Wealth in GWB = Total(KWD) / GWB_rate(KWD)
+  ---------------------------------------------------------------- */
+  function computeGwbRate () {
+    const r = state.gwbRates;
+    return (
+      GWB_WEIGHTS.usd * r.usd +
+      GWB_WEIGHTS.eur * r.eur +
+      GWB_WEIGHTS.xau * r.xau +
+      GWB_WEIGHTS.cny * r.cny +
+      GWB_WEIGHTS.gbp * r.gbp +
+      GWB_WEIGHTS.jpy * r.jpy
+    );
+  }
+
+  function computeGwbWealth (totalKwd) {
+    const rate = computeGwbRate();
+    return rate > 0 ? totalKwd / rate : 0;
+  }
+
+  function renderGwbCard (totalKwd) {
+    const rate     = computeGwbRate();
+    const gwbTotal = rate > 0 ? totalKwd / rate : 0;
+    const r        = state.gwbRates;
+
+    // Record GWB history
+    if (isFinite(gwbTotal)) {
+      const last = state.gwbHistory[state.gwbHistory.length - 1];
+      if (!last || Math.abs(last.gwb - gwbTotal) > 0.0001) {
+        state.gwbHistory.push({ ts: Date.now(), gwb: gwbTotal });
+        if (state.gwbHistory.length > 150) state.gwbHistory.shift();
+      }
+    }
+
+    if (state.startingGwbWealth === 0 && gwbTotal > 0) {
+      state.startingGwbWealth = gwbTotal;
+    }
+    const startGwb  = state.startingGwbWealth || gwbTotal;
+    const pnlGwb    = gwbTotal - startGwb;
+    const pctGwb    = startGwb ? (pnlGwb / startGwb) * 100 : 0;
+
+    // Main display
+    const gwbEl = document.getElementById('gwbWealthDisplay');
+    if (gwbEl) gwbEl.innerHTML = gwbTotal.toFixed(3) + '&nbsp;<small style="color:#6b7280;">GWB</small>';
+
+    const rateEl = document.getElementById('gwbRateDisplay');
+    if (rateEl) rateEl.innerText = rate.toFixed(4) + ' KWD';
+
+    const pnlEl = document.getElementById('gwbPnlDisplay');
+    if (pnlEl) {
+      const sign  = pnlGwb >= 0 ? '+' : '';
+      pnlEl.innerText = `${sign}${pnlGwb.toFixed(3)} GWB (${sign}${pctGwb.toFixed(2)}%)`;
+      pnlEl.style.color = pnlGwb >= 0 ? 'var(--c-success)' : 'var(--c-danger)';
+    }
+
+    const pnlBadge = document.getElementById('gwbPnlBadge');
+    if (pnlBadge) {
+      if (Math.abs(pctGwb) < 0.001) {
+        pnlBadge.innerHTML = '<i class="fas fa-globe"></i> مقياس محايد من التضخم وطباعة العملات';
+        pnlBadge.style.color = '#818cf8';
+      } else if (pnlGwb >= 0) {
+        pnlBadge.innerHTML = `<i class="fas fa-arrow-trend-up"></i> ثروتك الحقيقية نمت +${pctGwb.toFixed(2)}% بالسلة العالمية`;
+        pnlBadge.style.color = 'var(--c-success)';
+        pnlBadge.style.background = 'rgba(74,222,128,0.1)';
+      } else {
+        pnlBadge.innerHTML = `<i class="fas fa-arrow-trend-down"></i> ثروتك الحقيقية تراجعت ${pctGwb.toFixed(2)}% بالسلة العالمية`;
+        pnlBadge.style.color = 'var(--c-danger)';
+        pnlBadge.style.background = 'rgba(248,113,113,0.1)';
+      }
+    }
+
+    // Basket component mini-displays
+    const fmt = v => v < 0.01 ? v.toFixed(5) : v < 1 ? v.toFixed(4) : v.toFixed(3);
+    const setComp = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = fmt(val); };
+    setComp('gwbUsdRate',  r.usd);
+    setComp('gwbEurRate',  r.eur);
+    setComp('gwbGoldRate', r.xau);
+    setComp('gwbCnyRate',  r.cny);
+    setComp('gwbGbpRate',  r.gbp);
+    setComp('gwbJpyRate',  r.jpy);
+
+    // Also update ticker in live bar
+    const gwbTickerEl = document.getElementById('gwbRateTicker');
+    if (gwbTickerEl) gwbTickerEl.innerText = rate.toFixed(4);
   }
 
   /* ----------------------------------------------------------------
@@ -1212,10 +1452,8 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
       badge.innerHTML = `<i class="fas fa-arrow-trend-down"></i> ${pct.toFixed(2)}% منذ البداية`;
     }
 
-    // Gold-equivalent wealth
-    const goldEq = state.rates.goldGramKwd24 > 0 ? currentTotal / state.rates.goldGramKwd24 : 0;
-    document.getElementById('goldWealthDisplay').innerHTML =
-      goldEq.toFixed(2) + '&nbsp;<small>جرام ذهب 24K</small>';
+    // GWB — Global Wealth Basket rendering
+    renderGwbCard(currentTotal);
 
     // Asset breakdown
     document.getElementById('cashKWDVal').innerText     = wealth.cashKWDVal.toFixed(3) + ' KWD';
@@ -2023,13 +2261,16 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
 
     document.getElementById('exportBtn').addEventListener('click', () => {
       const payload = {
-        version: 5, exportedAt: new Date().toISOString(),
+        version: 6, exportedAt: new Date().toISOString(),
         assets: state.assets, incomes: state.incomes, expenses: state.expenses,
         goals: state.goals, credits: state.credits, debts: state.debts,
         bullions: state.bullions, zakatGoldPrice: state.zakatGoldPrice,
         wealthHistory: state.wealthHistory,
         startingTotalWealth: state.startingTotalWealth,
-        rates: state.rates
+        rates: state.rates,
+        gwbRates: state.gwbRates,
+        gwbHistory: state.gwbHistory,
+        startingGwbWealth: state.startingGwbWealth
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url  = URL.createObjectURL(blob);
@@ -2061,6 +2302,9 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
           state.zakatGoldPrice = data.zakatGoldPrice || state.rates.goldGramKwd24 || FB_GOLD_KWD;
           state.wealthHistory  = data.wealthHistory  || [];
           state.startingTotalWealth = data.startingTotalWealth || 0;
+          if (data.gwbRates) state.gwbRates = Object.assign({ ...GWB_FALLBACKS }, data.gwbRates);
+          state.gwbHistory        = data.gwbHistory        || [];
+          state.startingGwbWealth = data.startingGwbWealth || 0;
           syncInputFields();
           computeAndRender();
           notify('✅ تم استيراد النسخة الاحتياطية بنجاح', 'success');
@@ -2125,6 +2369,15 @@ input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px s
 
     prevCreditsTotal = state.credits.reduce((s,c) => s+c.amount, 0);
     prevDebtsTotal   = state.debts.reduce((s,d)   => s+d.amount, 0);
+
+    // Migrate old storage key if present
+    const oldKeys = ['zagloul_v5', 'zagloul_state_v5', 'zagloul_state_v4', 'zaghloul_finance', 'zaghlol_finance'];
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      for (const k of oldKeys) {
+        const old = localStorage.getItem(k);
+        if (old) { try { localStorage.setItem(STORAGE_KEY, old); } catch(_){} break; }
+      }
+    }
 
     bindAssetInputs();
     bindIncomeModal();
