@@ -484,28 +484,80 @@ function apply(d){
   S.gwbH=d.gwbH||[];S.startGwb=d.startGwb||0;S._at=d._at||null;
 }
 // ═══════════════════════════════════════════
-// CLOUD
+// CLOUD — push / pull / Realtime
 // ═══════════════════════════════════════════
+
+/* ─── Push: upsert به updated_at دقيق ─── */
 async function push(uid){
   if(!sbC) return;
   setSS('y','مزامنة...');
   try{
-    const{error}=await sbC.from(CFG.TBL).upsert({user_id:uid,payload:ser(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    const now=new Date().toISOString();
+    S._at=now;                          // حدّث الطابع الزمني محلياً قبل الرفع
+    const{error}=await sbC.from(CFG.TBL)
+      .upsert({user_id:uid,payload:ser(),updated_at:now},{onConflict:'user_id'});
     if(error) throw error;
     setSS('g','مزامَن ☁️');
-  }catch(e){setSS('r','خطأ');}
+  }catch(e){console.warn('push fail',e);setSS('r','خطأ في الرفع');}
 }
+
+/* ─── Pull: جلب مرة واحدة عند الإقلاع ─── */
 async function pull(uid){
   if(!sbC) return null;
   setSS('y','تحميل...');
   try{
-    const{data,error}=await sbC.from(CFG.TBL).select('payload,updated_at').eq('user_id',uid).single();
+    const{data,error}=await sbC.from(CFG.TBL)
+      .select('payload,updated_at').eq('user_id',uid).maybeSingle();
     if(error) throw error;
     setSS('g','مزامَن ☁️');
     return data?.payload||null;
-  }catch(e){setSS('r','غير متصل');return null;}
+  }catch(e){console.warn('pull fail',e);setSS('r','غير متصل');return null;}
 }
-function schedSync(){clearTimeout(syncT);syncT=setTimeout(()=>{save();if(sbC) push(UID);},1500);}
+
+/* ─── تطبيق بيانات واردة مع مقارنة زمنية ─── */
+function applyRemote(remotePayload){
+  if(!remotePayload) return;
+  const localDate =new Date(S._at||0);
+  const remoteDate=new Date(remotePayload._at||0);
+  if(remoteDate<=localDate) return;   // البيانات المحلية أحدث — تجاهل
+  apply(remotePayload);
+  save();
+  syncIn();
+  render(false);
+  nt('🔄 تم التحديث من جهاز آخر','suc');
+}
+
+/* ─── Supabase Realtime subscription ─── */
+let rtChannel=null;
+function subscribeRealtime(uid){
+  if(!sbC||rtChannel) return;         // لا تشترك مرتين
+  rtChannel=sbC.channel('zagloul_rt_'+uid)
+    .on('postgres_changes',
+        {event:'UPDATE',schema:'public',table:CFG.TBL,filter:`user_id=eq.${uid}`},
+        payload=>{
+          // الحدث يصل لكل الأجهزة الأخرى التي تشترك بنفس uid
+          const incoming=payload.new?.payload;
+          applyRemote(incoming);
+        })
+    .subscribe(status=>{
+      if(status==='SUBSCRIBED') setSS('g','مزامَن ☁️ لحظي');
+      else if(status==='CHANNEL_ERROR') setSS('r','خطأ في الاشتراك');
+    });
+}
+
+function unsubscribeRealtime(){
+  if(rtChannel){sbC?.removeChannel(rtChannel);rtChannel=null;}
+}
+
+/* ─── Debounced save+push after local changes ─── */
+function schedSync(){
+  clearTimeout(syncT);
+  syncT=setTimeout(async()=>{
+    save();
+    if(sbC) await push(UID);
+    // Broadcast يحدث تلقائياً عبر postgres_changes بعد upsert
+  },1500);
+}
 // ═══════════════════════════════════════════
 // LOCAL STORAGE
 // ═══════════════════════════════════════════
@@ -1041,17 +1093,39 @@ function bindCloud(){
   };
   document.getElementById('fSync').onclick=async()=>{
     const url=document.getElementById('sbUrl').value.trim(),key=document.getElementById('sbKey').value.trim();
-    if(url&&key){CFG.URL=url;CFG.KEY=key;localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);sbC=initSB(url,key);}
+    if(url&&key){
+      CFG.URL=url;CFG.KEY=key;
+      localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);
+      unsubscribeRealtime();           // أوقف الاشتراك القديم
+      sbC=initSB(url,key);
+    }
     if(!sbC){nt('❌ لم يتم الاتصال — تحقق من URL والـ Key','err');return;}
-    await push(UID);nt('☁️ تمت المزامنة','suc');closeM('clMod');
+    await push(UID);
+    subscribeRealtime(UID);            // أعد الاشتراك بالـ UID الحالي
+    nt('☁️ تمت المزامنة واشتراك Realtime فعّال','suc');
+    closeM('clMod');
   };
   document.getElementById('ldUID').onclick=async()=>{
-    const uid=document.getElementById('impUID').value.trim();if(!uid){nt('❌ أدخل UID صحيحاً','err');return;}
+    const uid=document.getElementById('impUID').value.trim();
+    if(!uid){nt('❌ أدخل UID صحيحاً','err');return;}
     const url=document.getElementById('sbUrl').value.trim(),key=document.getElementById('sbKey').value.trim();
-    if(url&&key){CFG.URL=url;CFG.KEY=key;localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);sbC=initSB(url,key);}
+    if(url&&key){
+      CFG.URL=url;CFG.KEY=key;
+      localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);
+      unsubscribeRealtime();
+      sbC=initSB(url,key);
+    }
     if(!sbC){nt('❌ أدخل بيانات Supabase أولاً','err');return;}
-    const d=await pull(uid);if(!d){nt('❌ لا توجد بيانات لهذا المعرّف','err');return;}
-    apply(d);UID=uid;localStorage.setItem(UK,uid);save();syncIn();render();nt('✅ تم تحميل البيانات','suc');closeM('clMod');
+    const d=await pull(uid);
+    if(!d){nt('❌ لا توجد بيانات لهذا المعرّف','err');return;}
+    apply(d);
+    unsubscribeRealtime();             // ألغِ الاشتراك القديم
+    UID=uid;
+    localStorage.setItem(UK,uid);
+    save();syncIn();render();
+    subscribeRealtime(UID);            // اشترك بالـ UID الجديد
+    nt('✅ تم تحميل البيانات والاشتراك لحظي فعّال','suc');
+    closeM('clMod');
   };
 }
 // ═══════════════════════════════════════════
@@ -1112,22 +1186,43 @@ function H(s){const d=document.createElement('div');d.innerText=s==null?'':Strin
 // INIT
 // ═══════════════════════════════════════════
 async function init(){
-  loadSBCfg();load();syncIn();tickerUpdate();
+  loadSBCfg();
+  load();
+  syncIn();
+  tickerUpdate();
   document.getElementById('zgp').value=(S.zakatGP||FB_XAU).toFixed(3);
   pCr=S.credits.reduce((s,c)=>s+c.amount,0);
   pDt=S.debts.reduce((s,d)=>s+d.amount,0);
   bindAssets();bindModals();bindCloud();bindHeader();bindNav();
-  render(false);procInc();fetchRates();
-  setInterval(fetchRates,60000);setInterval(procInc,60000);
+  render(false);
+  procInc();
+  fetchRates();
+  setInterval(fetchRates,60000);
+  setInterval(procInc,60000);
+
   if(sbC){
-    setSS('y','تحميل...');
-    const cd=await pull(UID);
-    if(cd){
-      const ld=new Date(S._at||0),rd=new Date(cd._at||0);
-      if(rd>ld){apply(cd);save();syncIn();render(false);nt('☁️ تم تحديث البيانات','suc');}
-      else await push(UID);
-    } else await push(UID);
-  } else setSS('r','تخزين محلي');
+    setSS('y','جاري التحميل...');
+    // 1. جلب آخر نسخة من السحابة مرة واحدة عند الإقلاع
+    const cloudData=await pull(UID);
+    if(cloudData){
+      const localDate =new Date(S._at||0);
+      const remoteDate=new Date(cloudData._at||0);
+      if(remoteDate>localDate){
+        apply(cloudData);save();syncIn();render(false);
+        nt('☁️ تم تحميل أحدث نسخة من السحابة','suc');
+      } else {
+        // البيانات المحلية أحدث — ارفعها للسحابة
+        await push(UID);
+      }
+    } else {
+      // أول مرة — ارفع البيانات المحلية
+      await push(UID);
+    }
+    // 2. اشترك في Realtime لاستقبال تغييرات الأجهزة الأخرى لحظياً
+    subscribeRealtime(UID);
+  } else {
+    setSS('r','تخزين محلي فقط');
+  }
 }
 document.addEventListener('DOMContentLoaded',init);
 })();
