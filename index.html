@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>زغلول | لوحة التحكم المالية الذكية</title>
+<title>زغلول v8 | لوحة التحكم المالية الذكية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
@@ -294,6 +294,20 @@ textarea{width:100%;resize:vertical;min-height:64px;font-family:'Tajawal',sans-s
   input[type="number"]{width:110px;}.zt{flex-direction:column;}
   .zt input,.zt select{min-width:100%;flex:auto;}.mc{max-width:95vw;padding:18px;}
   .ms{grid-template-columns:1fr;}.mdiv{height:1px;width:100%;}}
+
+/* v8 improvements */
+.lb{position:sticky;top:0;z-index:100;}
+.conv-hint{font-size:.68rem;color:var(--td);margin-top:2px;font-family:'Plus Jakarta Sans',sans-serif;}
+.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--td);font-size:.82rem;pointer-events:none;}
+.tlit.is-paid .tlc{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03);}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.sec>.card,.sec>.g2>.card,.sec>.gh>.card{animation:cardIn .35s ease both;}
+.mml::-webkit-scrollbar,.sl::-webkit-scrollbar{width:3px;}
+.mml::-webkit-scrollbar-thumb,.sl::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:6px;}
+.cp-btn.active{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.5);color:var(--glb);box-shadow:0 0 12px rgba(212,175,55,.2);}
+
 </style>
 </head>
 <body>
@@ -377,7 +391,7 @@ textarea{width:100%;resize:vertical;min-height:64px;font-family:'Tajawal',sans-s
       <button class="cp-btn" data-p="1Y">سنة</button>
       <button class="cp-btn" data-p="ALL">الكل</button>
     </div>
-    <div class="cb h280"><canvas id="whChart"></canvas></div>
+    <div class="cb h280" style="position:relative;"><canvas id="whChart"></canvas><div class="chart-empty" id="chartEmpty" style="display:none;"><i class="fas fa-chart-line" style="font-size:2rem;color:rgba(212,175,55,.2);"></i><span>سجّل بياناتك لبدء تتبع الثروة</span></div></div>
     <div id="chartStats" style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:.78rem;color:var(--td);"></div>
   </div>
 </div>
@@ -387,10 +401,10 @@ textarea{width:100%;resize:vertical;min-height:64px;font-family:'Tajawal',sans-s
     <div class="card">
       <div class="ct"><i class="fas fa-sliders"></i> الأصول</div>
       <div class="fg"><label><i class="fas fa-money-bill" style="color:var(--kwd)"></i> كاش KWD</label><input type="number" id="cashKWD" step="50" value="0"></div>
-      <div class="fg"><label><i class="fas fa-money-bill-wave" style="color:var(--egp)"></i> كاش EGP</label><input type="number" id="cashEGP" step="1000" value="0"></div>
+      <div class="fg"><label><i class="fas fa-money-bill-wave" style="color:var(--egp)"></i> كاش EGP</label><div><input type="number" id="cashEGP" step="1000" value="0"><div class="conv-hint" id="egpHint">≈ 0.000 KWD</div></div></div>
       <div class="fg"><label><i class="fas fa-cube" style="color:var(--gld)"></i> ذهب (جرام)</label>
         <div class="fc"><select id="goldKarat"><option value="24">عيار 24</option><option value="22">عيار 22</option><option value="21" selected>عيار 21</option><option value="18">عيار 18</option><option value="14">عيار 14</option></select><input type="number" id="goldGrams" step="1" value="0"></div></div>
-      <div class="fg"><label><i class="fas fa-city" style="color:var(--est)"></i> عقارات (EGP)</label><input type="number" id="realEstateEGP" step="10000" value="0"></div>
+      <div class="fg"><label><i class="fas fa-city" style="color:var(--est)"></i> عقارات (EGP)</label><div><input type="number" id="realEstateEGP" step="10000" value="0"><div class="conv-hint" id="reHint">≈ 0.000 KWD</div></div></div>
       <hr class="sp">
       <div class="br2"><span><span class="dot" style="background:var(--kwd)"></span>كاش KWD</span><span id="ckv">0.000 KWD</span></div>
       <div class="br2"><span><span class="dot" style="background:var(--egp)"></span>كاش EGP→KWD</span><span id="cev">0.000 KWD</span></div>
@@ -468,6 +482,7 @@ textarea{width:100%;resize:vertical;min-height:64px;font-family:'Tajawal',sans-s
   </div>
 </div>
 </div><!-- /container -->
+<div style="text-align:center;padding:14px 0 4px;font-size:.62rem;color:var(--td);">زغلول v8 &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; بيانات محمية محلياً وسحابياً</div>
 <nav class="bnav" id="bnav">
   <a href="#s0" data-t="s0"><i class="fas fa-house"></i>عامة</a>
   <a href="#s1" data-t="s1"><i class="fas fa-coins"></i>أصول</a>
@@ -794,6 +809,9 @@ function render(rec=true){
   else{pb.className='pb pd2';pb.innerHTML=`<i class="fas fa-arrow-trend-down"></i> ${pct.toFixed(2)}%`;}
 
   renderGWB(cur);
+  const e2k2=1/S.rates.egp;
+  const egpH=document.getElementById('egpHint');if(egpH)egpH.innerText='\u2248 '+(S.assets.cashEGP*e2k2).toFixed(3)+' KWD';
+  const reH=document.getElementById('reHint');if(reH)reH.innerText='\u2248 '+(S.assets.realEstateEGP*e2k2).toFixed(3)+' KWD';
   document.getElementById('ckv').innerText=w.ck.toFixed(3)+' KWD';
   document.getElementById('cev').innerText=w.ce.toFixed(3)+' KWD';
   document.getElementById('cgv').innerText=w.cg.toFixed(3)+' KWD';
@@ -1157,11 +1175,15 @@ function getFilteredHistory(){
 
 function wlChart(){
   const hist=getFilteredHistory();
+  const emEl=document.getElementById('chartEmpty');
   if(!hist.length){
     const el=document.getElementById('chartStats');
     if(el)el.innerHTML='';
+    if(emEl)emEl.style.display='flex';
+    if(wlC){wlC.data.labels=[];wlC.data.datasets[0].data=[];wlC.update('none');}
     return;
   }
+  if(emEl)emEl.style.display='none';
 
   // تحديد عدد النقاط المعروضة (تخفيف للرسم السلس)
   const maxPts=200;
@@ -1236,7 +1258,18 @@ function wlChart(){
         }
       },
       animation:{duration:400}
-    }
+    },
+    plugins:[{
+      id:'ch',
+      afterDraw:ch=>{
+        if(!ch.tooltip._active||!ch.tooltip._active.length)return;
+        const cx=ch.ctx,x=ch.tooltip._active[0].element.x;
+        const{top,bottom}=ch.chartArea;
+        cx.save();cx.beginPath();cx.moveTo(x,top);cx.lineTo(x,bottom);
+        cx.lineWidth=1;cx.strokeStyle='rgba(212,175,55,.35)';cx.setLineDash([4,4]);
+        cx.stroke();cx.restore();
+      }
+    }]
   });
 }
 
@@ -1580,7 +1613,7 @@ function bindNav(){
 // TOAST
 // ══════════════════════════════════════════════════════
 function nt(msg,type){
-  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const ts=document.querySelectorAll('.toast');if(ts.length>=3)ts[0].remove();
   const ic={err:'fa-circle-exclamation',suc:'fa-circle-check',wrn:'fa-triangle-exclamation'};
   const t=document.createElement('div');
   t.className='toast'+(type?' '+type:'');
