@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>زغلول v8 | لوحة التحكم المالية الذكية</title>
+<title>زغلول v12 | لوحة الثروة الذكية</title>
+<meta name="theme-color" content="#07080f"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="زغلول">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 :root{
@@ -308,6 +311,169 @@ input[type=number]{-moz-appearance:textfield;}
 .mml::-webkit-scrollbar-thumb,.sl::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:6px;}
 .cp-btn.active{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.5);color:var(--glb);box-shadow:0 0 12px rgba(212,175,55,.2);}
 
+
+/* ══════════════════════════════════════════════
+   WEALTH CHART — FULL FEATURED
+══════════════════════════════════════════════ */
+.wc-card{padding:20px 22px;}
+.wc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.wc-controls{display:flex;align-items:center;gap:8px;}
+.wc-type-btns{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;}
+.wt-btn{background:none;border:none;color:var(--td);cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.78rem;transition:.18s;}
+.wt-btn:hover{color:var(--tp);background:rgba(255,255,255,.06);}
+.wt-btn.active{background:rgba(212,175,55,.18);color:var(--glb);}
+.wc-compare-toggle{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;background:rgba(255,255,255,.04);border:1px solid var(--bs);color:var(--td);transition:.18s;}
+.wc-compare-toggle:hover,.wc-compare-toggle.active{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.35);color:#a5b4fc;}
+.wc-dl-btn,.wc-expand-btn{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.78rem;background:rgba(255,255,255,.04);border:1px solid var(--bs);color:var(--td);transition:.18s;}
+.wc-dl-btn:hover,.wc-expand-btn:hover{background:rgba(212,175,55,.1);border-color:var(--bg2);color:var(--glb);}
+/* Period bar */
+.wc-periods{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;background:rgba(255,255,255,.025);border-radius:14px;padding:4px;width:fit-content;}
+.cp-btn{padding:5px 14px;font-size:.73rem;border-radius:10px;background:none;border:none;color:var(--td);cursor:pointer;transition:.18s;font-family:'Tajawal',sans-serif;font-weight:700;}
+.cp-btn:hover{color:var(--tp);}
+.cp-btn.active{background:rgba(212,175,55,.2);color:var(--glb);box-shadow:0 2px 8px rgba(212,175,55,.2);}
+/* KPI bar */
+.wc-kpi{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.025);border:1px solid var(--bs);border-radius:14px;padding:10px 16px;margin-bottom:12px;flex-wrap:wrap;gap:6px;}
+.wc-kpi-item{display:flex;flex-direction:column;gap:2px;min-width:80px;}
+.wc-kpi-lbl{font-size:.65rem;color:var(--td);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.wc-kpi-val{font-size:.92rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--tp);}
+.wc-kpi-sep{width:1px;height:32px;background:var(--bs);flex-shrink:0;margin:0 10px;}
+/* Chart area */
+.wc-chart-wrap{position:relative;height:300px;width:100%;border-radius:12px;overflow:hidden;}
+.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--td);font-size:.82rem;pointer-events:none;}
+/* Footer */
+.wc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;}
+.wc-trend{font-size:.78rem;color:var(--td);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.wc-trend-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-weight:700;font-size:.72rem;}
+.wc-trend-up{background:rgba(74,222,128,.1);color:var(--grn);}
+.wc-trend-down{background:rgba(248,113,113,.1);color:var(--red);}
+.wc-live-badge{display:flex;align-items:center;gap:6px;font-size:.68rem;color:var(--td);}
+.wc-live-dot{width:6px;height:6px;border-radius:50%;background:var(--grn);box-shadow:0 0 6px var(--grn);animation:livePulse 2s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 6px var(--grn);}50%{opacity:.5;box-shadow:0 0 12px var(--grn);}}
+/* Fullscreen chart modal */
+.wc-fullscreen{position:fixed;inset:0;z-index:4000;background:rgba(7,8,15,.96);backdrop-filter:blur(8px);display:none;flex-direction:column;padding:24px;}
+.wc-fullscreen.open{display:flex;}
+.wc-fs-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.wc-fs-title{font-size:1.1rem;font-weight:700;color:var(--tp);display:flex;align-items:center;gap:8px;}
+.wc-fs-close{background:rgba(255,255,255,.06);border:1px solid var(--bs);color:var(--tp);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.wc-fs-canvas{flex:1;position:relative;}
+@media(max-width:640px){
+  .wc-kpi{gap:4px;padding:8px 12px;}
+  .wc-kpi-item{min-width:60px;}
+  .wc-kpi-val{font-size:.8rem;}
+  .wc-kpi-sep{display:none;}
+  .wc-chart-wrap{height:240px;}
+  .wc-controls{gap:5px;}
+}
+
+
+/* ══════════ QR SYNC ══════════ */
+.qr-tabs{display:flex;gap:0;margin-bottom:18px;background:rgba(255,255,255,.04);border-radius:14px;padding:3px;}
+.qr-tab{flex:1;text-align:center;padding:8px;font-size:.82rem;font-weight:700;cursor:pointer;border-radius:11px;color:var(--td);transition:.2s;font-family:'Tajawal',sans-serif;}
+.qr-tab.active{background:rgba(212,175,55,.18);color:var(--glb);}
+.qr-panel{display:none;animation:fi .2s ease;}
+.qr-panel.active{display:block;}
+.qr-box{background:var(--bgs);border:1px solid var(--bo);border-radius:18px;padding:22px;text-align:center;margin:14px 0;}
+.qr-box canvas,.qr-box img{border-radius:12px;display:block;margin:0 auto;}
+.qr-title{font-size:.85rem;font-weight:700;color:var(--tm);margin-bottom:12px;}
+.qr-sub{font-size:.72rem;color:var(--td);margin-top:10px;line-height:1.7;}
+.qr-uid-show{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:10px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.75rem;word-break:break-all;color:var(--glb);letter-spacing:.5px;margin:10px 0;}
+.qr-scan-area{border:2px dashed rgba(212,175,55,.3);border-radius:16px;padding:24px;text-align:center;color:var(--td);font-size:.85rem;cursor:pointer;transition:.2s;margin:10px 0;}
+.qr-scan-area:hover{border-color:rgba(212,175,55,.6);background:rgba(212,175,55,.04);}
+.qr-scan-area i{font-size:2rem;color:var(--gld);display:block;margin-bottom:8px;}
+.qr-steps{text-align:right;margin:12px 0;}
+.qr-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:.78rem;color:var(--tm);}
+.qr-step-num{width:20px;height:20px;border-radius:50%;background:rgba(212,175,55,.2);color:var(--glb);font-size:.68rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qr-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin:8px 0;}
+.qr-status-ok{background:rgba(74,222,128,.12);color:var(--grn);}
+.qr-status-err{background:rgba(248,113,113,.12);color:var(--red);}
+.qr-status-wait{background:rgba(251,146,60,.12);color:var(--orn);}
+.qr-divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--td);font-size:.72rem;}
+.qr-divider::before,.qr-divider::after{content:'';flex:1;height:1px;background:var(--bs);}
+#qrCanvas{background:#fff;border-radius:12px;padding:10px;}
+.qr-dl-btn{margin-top:10px;width:100%;}
+.sb-section{background:rgba(255,255,255,.02);border:1px solid var(--bs);border-radius:14px;padding:14px;margin-top:10px;}
+.sb-section-title{font-size:.75rem;color:var(--td);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.mc.wide{max-width:540px;}
+@media(max-width:540px){.mc.wide{max-width:95vw;}}
+
+
+.fhs-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:16px;}
+.fhs-dial{position:relative;width:100px;height:100px;flex-shrink:0;}
+.fhs-dial svg{transform:rotate(-90deg);}
+.fhs-dial .fhs-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:8;}
+.fhs-dial .fhs-arc{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1),stroke .5s;}
+.fhs-score{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.fhs-num{font-size:1.6rem;font-weight:900;font-family:'Plus Jakarta Sans',sans-serif;line-height:1;}
+.fhs-lbl{font-size:.6rem;color:var(--td);font-weight:700;}
+.fhs-factors{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fhs-factor{background:rgba(255,255,255,.025);border:1px solid var(--bs);border-radius:12px;padding:9px 12px;}
+.fhs-factor-name{font-size:.68rem;color:var(--td);margin-bottom:4px;}
+.fhs-factor-bar{height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-bottom:3px;}
+.fhs-factor-fill{height:100%;border-radius:4px;transition:width .6s;}
+.fhs-factor-val{font-size:.72rem;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;}
+.proj-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,.025);border-radius:12px;padding:3px;width:fit-content;}
+.proj-tab{padding:5px 14px;font-size:.72rem;border-radius:9px;background:none;border:none;color:var(--td);cursor:pointer;font-family:"Tajawal",sans-serif;font-weight:700;transition:.18s;}
+.proj-tab.active{background:rgba(99,102,241,.2);color:#a5b4fc;}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:12px;}
+.proj-item{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:14px;padding:12px 14px;text-align:center;}
+.proj-period{font-size:.65rem;color:#818cf8;margin-bottom:4px;}
+.proj-val{font-size:.9rem;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;color:#c7d2fe;}
+.proj-pct{font-size:.62rem;color:var(--td);margin-top:2px;}
+.bk-list{max-height:220px;overflow-y:auto;}
+.bk-item{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.022);border:1px solid var(--bs);border-radius:12px;padding:10px 14px;margin-bottom:8px;gap:8px;flex-wrap:wrap;}
+.bk-meta{display:flex;flex-direction:column;gap:2px;}
+.bk-date{font-size:.8rem;font-weight:700;color:var(--tp);}
+.bk-size{font-size:.68rem;color:var(--td);}
+.bk-tag{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(212,175,55,.12);color:var(--glb);}
+.bk-actions{display:flex;gap:6px;}
+.anal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;}
+.anal-card{background:rgba(255,255,255,.022);border:1px solid var(--bs);border-radius:16px;padding:14px;}
+.anal-card-title{font-size:.7rem;color:var(--td);margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.allocation-bar{height:9px;border-radius:20px;overflow:hidden;display:flex;margin:8px 0;}
+.allocation-seg{height:100%;transition:width .5s;}
+.enc-badge{display:inline-flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(74,222,128,.1);color:var(--grn);}
+.reminder-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.022);border:1px solid var(--bs);border-radius:12px;margin-bottom:8px;font-size:.82rem;}
+.reminder-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.reminder-info{flex:1;}.reminder-title{font-weight:700;font-size:.84rem;}.reminder-sub{font-size:.7rem;color:var(--td);}
+.score-excellent{color:#4ade80;}.score-good{color:#a3e635;}.score-fair{color:#fb923c;}.score-poor{color:#f87171;}
+.trend-mini{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-flex;align-items:center;gap:3px;}
+.trend-up{background:rgba(74,222,128,.12);color:var(--grn);}.trend-dn{background:rgba(248,113,113,.12);color:var(--red);}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+
+
+/* ══════════ EXCEL IMPORT ══════════ */
+.xl-drop{border:2px dashed rgba(212,175,55,.35);border-radius:18px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:rgba(212,175,55,.03);}
+.xl-drop:hover,.xl-drop.drag-over{border-color:var(--glb);background:rgba(212,175,55,.08);transform:scale(1.01);}
+.xl-drop i{font-size:2.4rem;color:var(--gld);display:block;margin-bottom:10px;}
+.xl-drop .xl-title{font-size:.9rem;font-weight:700;color:var(--tp);margin-bottom:4px;}
+.xl-drop .xl-sub{font-size:.74rem;color:var(--td);}
+.xl-sheet-tabs{display:flex;gap:4px;margin:12px 0 8px;flex-wrap:wrap;}
+.xl-sheet-tab{padding:5px 13px;font-size:.72rem;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid var(--bs);color:var(--tm);cursor:pointer;transition:.18s;font-family:'Tajawal',sans-serif;font-weight:700;}
+.xl-sheet-tab.active{background:rgba(212,175,55,.15);border-color:var(--bg2);color:var(--glb);}
+.xl-preview{overflow-x:auto;border-radius:14px;border:1px solid var(--bs);margin:10px 0;max-height:280px;overflow-y:auto;}
+.xl-table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:400px;}
+.xl-table th{background:rgba(255,255,255,.05);color:var(--td);padding:8px 10px;text-align:right;white-space:nowrap;font-size:.68rem;position:sticky;top:0;}
+.xl-table td{padding:7px 10px;border-top:1px solid var(--bs);white-space:nowrap;color:var(--tm);}
+.xl-table tbody tr:hover{background:rgba(255,255,255,.025);}
+.xl-map-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+.xl-map-row{background:rgba(255,255,255,.02);border:1px solid var(--bs);border-radius:11px;padding:10px 12px;}
+.xl-map-lbl{font-size:.7rem;color:var(--td);margin-bottom:4px;font-weight:600;}
+.xl-map-row select{width:100%;font-size:.78rem;padding:6px 10px;}
+.xl-stat-bar{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.xl-stat{background:rgba(255,255,255,.025);border:1px solid var(--bs);border-radius:10px;padding:8px 12px;font-size:.75rem;flex:1;min-width:80px;text-align:center;}
+.xl-stat b{display:block;font-size:1rem;font-family:'Plus Jakarta Sans',sans-serif;color:var(--glb);}
+.xl-import-step{display:none;}.xl-import-step.active{display:block;animation:fi .2s ease;}
+.xl-step-nav{display:flex;justify-content:space-between;margin-top:16px;gap:8px;}
+.xl-progress-steps{display:flex;align-items:center;gap:4px;margin-bottom:16px;}
+.xl-ps{width:28px;height:28px;border-radius:50%;border:2px solid var(--bs);color:var(--td);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;transition:.3s;flex-shrink:0;}
+.xl-ps.done{background:var(--grn);border-color:var(--grn);color:#000;}
+.xl-ps.current{background:rgba(212,175,55,.2);border-color:var(--glb);color:var(--glb);}
+.xl-ps-line{flex:1;height:2px;background:var(--bs);border-radius:2px;}
+.xl-ps-line.done{background:var(--grn);}
+.xl-result-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.8rem;border-bottom:1px solid var(--bs);}
+.xl-result-item:last-child{border:none;}
+.xl-result-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0;}
+
 </style>
 </head>
 <body>
@@ -322,6 +488,8 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="btn btgh btsm" id="syncBtn" data-tooltip="حالة المزامنة"><span class="sd r" id="sdt"></span><span id="slt">محلي</span></button>
     <button class="btn btgh btsm" id="cloudBtn" data-tooltip="إعدادات المزامنة السحابية"><i class="fas fa-cloud"></i> تزامن</button>
     <span class="bw" id="zbw" style="display:none;" data-tooltip="تنبيهات الزكاة"><i class="fas fa-bell" style="color:var(--glb);font-size:1.1rem;" id="zbi"></i><span class="bb" id="zbc">0</span></span>
+    <button id="xlImportBtn" class="btn btgh btsm" data-tooltip="استيراد من Excel"><i class="fas fa-file-excel" style="color:#22c55e;"></i> Excel</button>
+    <button id="xlExportBtn" class="btn btgh btsm" data-tooltip="تصدير كامل إلى Excel (8 أوراق)"><i class="fas fa-file-excel" style="color:#22c55e;"></i> تصدير</button>
     <button id="exportBtn" class="btn btgh btsm"><i class="fas fa-download"></i> نسخ</button>
     <label class="btn btgh btsm" for="importInput" style="cursor:pointer;"><i class="fas fa-upload"></i> استيراد</label>
     <input type="file" id="importInput" accept="application/json" hidden>
@@ -379,10 +547,26 @@ input[type=number]{-moz-appearance:textfield;}
       </div>
     </div>
   </div>
-  <!-- WEALTH HISTORY CHART -->
-  <div class="card">
-    <div class="ct"><i class="fas fa-chart-line"></i> تطور الثروة عبر الزمن</div>
-    <div class="cp-bar" id="cpBar">
+  <!-- WEALTH HISTORY CHART — FULL FEATURED -->
+  <div class="card wc-card" id="wealthCard">
+    <div class="wc-header">
+      <div class="ct" style="margin-bottom:0;"><i class="fas fa-chart-line"></i> تطور الثروة عبر الزمن</div>
+      <div class="wc-controls">
+        <div class="wc-type-btns">
+          <button class="wt-btn active" data-type="line" title="خطي"><i class="fas fa-chart-line"></i></button>
+          <button class="wt-btn" data-type="bar" title="أعمدة"><i class="fas fa-chart-column"></i></button>
+          <button class="wt-btn" data-type="area" title="مساحة"><i class="fas fa-layer-group"></i></button>
+        </div>
+        <div class="wc-compare-toggle" id="compareToggle" data-tooltip="مقارنة GWB مع KWD">
+          <i class="fas fa-code-compare"></i>
+        </div>
+        <button class="wc-dl-btn" id="chartDlBtn" data-tooltip="تحميل المخطط"><i class="fas fa-download"></i></button>
+        <button class="wc-expand-btn" id="chartExpandBtn" data-tooltip="تكبير"><i class="fas fa-expand"></i></button>
+      </div>
+    </div>
+
+    <!-- Period selector -->
+    <div class="wc-periods" id="cpBar">
       <button class="cp-btn" data-p="1D">يوم</button>
       <button class="cp-btn" data-p="1W">أسبوع</button>
       <button class="cp-btn active" data-p="1M">شهر</button>
@@ -391,8 +575,55 @@ input[type=number]{-moz-appearance:textfield;}
       <button class="cp-btn" data-p="1Y">سنة</button>
       <button class="cp-btn" data-p="ALL">الكل</button>
     </div>
-    <div class="cb h280" style="position:relative;"><canvas id="whChart"></canvas><div class="chart-empty" id="chartEmpty" style="display:none;"><i class="fas fa-chart-line" style="font-size:2rem;color:rgba(212,175,55,.2);"></i><span>سجّل بياناتك لبدء تتبع الثروة</span></div></div>
-    <div id="chartStats" style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:.78rem;color:var(--td);"></div>
+
+    <!-- Live KPI bar -->
+    <div class="wc-kpi" id="wcKpi">
+      <div class="wc-kpi-item">
+        <span class="wc-kpi-lbl">الحالية</span>
+        <span class="wc-kpi-val" id="kpiCurrent">---</span>
+      </div>
+      <div class="wc-kpi-sep"></div>
+      <div class="wc-kpi-item">
+        <span class="wc-kpi-lbl">التغير</span>
+        <span class="wc-kpi-val" id="kpiChange">---</span>
+      </div>
+      <div class="wc-kpi-sep"></div>
+      <div class="wc-kpi-item">
+        <span class="wc-kpi-lbl">أعلى</span>
+        <span class="wc-kpi-val" id="kpiHigh">---</span>
+      </div>
+      <div class="wc-kpi-sep"></div>
+      <div class="wc-kpi-item">
+        <span class="wc-kpi-lbl">أدنى</span>
+        <span class="wc-kpi-val" id="kpiLow">---</span>
+      </div>
+      <div class="wc-kpi-sep"></div>
+      <div class="wc-kpi-item">
+        <span class="wc-kpi-lbl">المتوسط</span>
+        <span class="wc-kpi-val" id="kpiAvg">---</span>
+      </div>
+      <div class="wc-kpi-sep"></div>
+      <div class="wc-kpi-item">
+        <span class="wc-kpi-lbl">نقاط</span>
+        <span class="wc-kpi-val" id="kpiPoints">0</span>
+      </div>
+    </div>
+
+    <!-- Chart area -->
+    <div class="wc-chart-wrap" id="wc-wrap">
+      <canvas id="whChart"></canvas>
+      <div class="chart-empty" id="chartEmpty" style="display:none;">
+        <i class="fas fa-chart-line" style="font-size:2.5rem;color:rgba(212,175,55,.2);"></i>
+        <span>لا توجد بيانات بعد</span>
+        <span style="font-size:.72rem;margin-top:4px;">أدخل قيم أصولك وسيبدأ التسجيل تلقائياً</span>
+      </div>
+    </div>
+
+    <!-- Annotation / milestone bar -->
+    <div class="wc-footer">
+      <div class="wc-trend" id="wc-trend"></div>
+      <div class="wc-live-badge"><span class="wc-live-dot"></span> تحديث مباشر</div>
+    </div>
   </div>
 </div>
 <!-- ASSETS -->
@@ -481,15 +712,77 @@ input[type=number]{-moz-appearance:textfield;}
     <div id="cfBox" class="rb">جاري التحليل...</div>
   </div>
 </div>
+
+<div class="sec" id="s6">
+  <div class="card">
+    <div class="section-header">
+      <div class="ct" style="margin:0;"><i class="fas fa-heart-pulse" style="color:#f87171;"></i> النقاط المالية الصحية</div>
+      <span class="enc-badge" id="encBadge"><i class="fas fa-lock"></i> بيانات مشفرة</span>
+    </div>
+    <div class="fhs-wrap">
+      <div class="fhs-dial">
+        <svg viewBox="0 0 100 100" width="100" height="100">
+          <circle class="fhs-bg" cx="50" cy="50" r="42"/>
+          <circle class="fhs-arc" id="fhsArc" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+        </svg>
+        <div class="fhs-score"><div class="fhs-num" id="fhsNum">--</div><div class="fhs-lbl">نقطة</div></div>
+      </div>
+      <div class="fhs-factors" id="fhsFactors"></div>
+    </div>
+    <div id="fhsAdvice" style="font-size:.82rem;color:var(--tm);line-height:1.8;padding:12px 14px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid var(--bs);"></div>
+  </div>
+</div>
+<div class="sec" id="s7">
+  <div class="card">
+    <div class="ct"><i class="fas fa-arrow-trend-up" style="color:#818cf8;"></i> التوقعات المالية</div>
+    <div class="proj-tabs" id="projTabs">
+      <button class="proj-tab active" data-rate="0.05">5% نمو سنوي</button>
+      <button class="proj-tab" data-rate="0.08">8% نمو سنوي</button>
+      <button class="proj-tab" data-rate="0.12">12% نمو سنوي</button>
+    </div>
+    <div class="proj-grid" id="projGrid"></div>
+    <div style="height:180px;position:relative;"><canvas id="projChart"></canvas></div>
+  </div>
+  <div style="margin-top:18px;" class="g2">
+    <div class="card">
+      <div class="ct"><i class="fas fa-chart-pie" style="color:var(--gld);"></i> تحليل توزيع الأصول</div>
+      <div class="anal-grid" id="allocGrid"></div>
+      <div class="allocation-bar" id="allocBar"></div>
+      <div id="allocLegend" style="display:flex;gap:10px;flex-wrap:wrap;font-size:.72rem;color:var(--tm);margin-top:8px;"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><i class="fas fa-calendar-check" style="color:var(--egp);"></i> التذكيرات الذكية</div>
+      <div id="remindersContainer"></div>
+    </div>
+  </div>
+</div>
+<div class="sec" id="s8">
+  <div class="card">
+    <div class="ct"><i class="fas fa-shield-halved" style="color:var(--kwd);"></i> النسخ الاحتياطية والاسترداد
+      <button class="btn btg btsm" id="manualBackupBtn" style="margin-inline-start:auto;"><i class="fas fa-plus"></i> نسخة الآن</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="sm" style="flex:1;min-width:100px;"><div class="lb2">عدد النسخ</div><div class="vl" id="bkCount">0</div></div>
+      <div class="sm" style="flex:1;min-width:100px;"><div class="lb2">آخر نسخة</div><div class="vl" id="bkLast" style="font-size:.78rem;">لا يوجد</div></div>
+      <div class="sm" style="flex:1;min-width:100px;"><div class="lb2">الحجم الكلي</div><div class="vl" id="bkSize">0 KB</div></div>
+    </div>
+    <div class="bk-list" id="bkList"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn btgh btsm" id="exportAllBackupsBtn"><i class="fas fa-file-zipper"></i> تصدير كل النسخ</button>
+      <button class="btn btgh btsm btdr" id="clearBackupsBtn"><i class="fas fa-trash"></i> مسح النسخ القديمة</button>
+    </div>
+  </div>
+</div>
+
 </div><!-- /container -->
-<div style="text-align:center;padding:14px 0 4px;font-size:.62rem;color:var(--td);">زغلول v8 &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; بيانات محمية محلياً وسحابياً</div>
+<div style="text-align:center;padding:14px 0 4px;font-size:.62rem;color:var(--td);">زغلول v13 &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; بيانات محمية بتشفير AES-GCM &nbsp;·&nbsp; <i class="fas fa-shield-halved" style="color:var(--grn);"></i></div>
 <nav class="bnav" id="bnav">
-  <a href="#s0" data-t="s0"><i class="fas fa-house"></i>عامة</a>
+  <a href="#s0" data-t="s0"><i class="fas fa-house"></i>الرئيسية</a>
   <a href="#s1" data-t="s1"><i class="fas fa-coins"></i>أصول</a>
-  <a href="#s2" data-t="s2"><i class="fas fa-right-left"></i>تدفق</a>
-  <a href="#s3" data-t="s3"><i class="fas fa-bullseye"></i>أهداف</a>
   <a href="#s4" data-t="s4"><i class="fas fa-mosque"></i>زكاة</a>
-  <a href="#s5" data-t="s5"><i class="fas fa-chart-line"></i>تحليل</a>
+  <a href="#s6" data-t="s6"><i class="fas fa-heart-pulse"></i>صحة</a>
+  <a href="#s7" data-t="s7"><i class="fas fa-arrow-trend-up"></i>توقعات</a>
+  <a href="#s8" data-t="s8"><i class="fas fa-shield-halved"></i>نسخ</a>
 </nav>
 <!-- MODALS -->
 <div id="incMod" class="modal"><div class="mc"><h3><i class="fas fa-arrow-trend-up" style="color:var(--grn)"></i> إضافة دخل</h3><div class="mf"><label>نوع الدخل</label><select id="incCat"><option value="Positive">نشط</option><option value="Passive">سلبي</option><option value="Investment">استثماري</option></select></div><div class="mf"><label>الاسم/المصدر</label><input type="text" id="incSub"></div><div class="mf"><label>المبلغ (KWD)</label><input type="number" id="incAmt" step="1" min="0"></div><div class="mck"><input type="checkbox" id="incOT"><label for="incOT" style="margin:0;">دخل لمرة واحدة (يُضاف فوراً)</label></div><div class="mf" id="incDW"><label>يوم الاستحقاق (1-31)</label><input type="number" id="incDay" min="1" max="31"></div><div class="mb"><button id="incCnc" class="btn btgh">إلغاء</button><button id="incCnf" class="btn btg">إضافة</button></div></div></div>
@@ -498,7 +791,107 @@ input[type=number]{-moz-appearance:textfield;}
 <div id="cdMod" class="modal"><div class="mc"><h3 id="cdTit"><i class="fas fa-hand-holding-dollar"></i> إضافة</h3><input type="hidden" id="cdMode"><input type="hidden" id="cdEid"><div class="mf"><label>اسم الشخص/الجهة</label><input type="text" id="cdNm"></div><div class="mf"><label>المبلغ (KWD)</label><input type="number" id="cdAmt" step="0.001" min="0"></div><div class="mf"><label>ملاحظات (اختياري)</label><input type="text" id="cdNt"></div><div class="mb"><button id="cdCnc" class="btn btgh">إلغاء</button><button id="cdCnf" class="btn btg">حفظ</button></div></div></div>
 <div id="blMod" class="modal"><div class="mc"><h3 id="blTit"><i class="fas fa-cube" style="color:var(--gld)"></i> إضافة سبيكة</h3><input type="hidden" id="blEid"><div class="mf"><label>الاسم (اختياري)</label><input type="text" id="blNm"></div><div class="mf"><label>الوزن (جرام) *</label><input type="number" id="blWt" step="0.01" min="0.01"></div><div class="mf"><label>العيار *</label><select id="blKr"><option value="24">عيار 24</option><option value="22">عيار 22</option><option value="21">عيار 21</option><option value="18">عيار 18</option></select></div><div class="mf"><label>تاريخ الشراء *</label><input type="date" id="blPd"></div><div class="mf"><label>سعر الشراء (KWD) — اختياري</label><input type="number" id="blPr" step="0.001" min="0"></div><div class="mf"><label>ملاحظات</label><textarea id="blNt"></textarea></div><div class="mb"><button id="blCnc" class="btn btgh">إلغاء</button><button id="blCnf" class="btn btg"><i class="fas fa-save"></i> حفظ</button></div></div></div>
 <div id="zpMod" class="modal"><div class="mc"><h3><i class="fas fa-mosque" style="color:var(--gld)"></i> تسجيل دفع زكاة</h3><input type="hidden" id="zpBid"><input type="hidden" id="zpCy"><div class="mf"><label>السبيكة / الدورة</label><div id="zpLbl" style="font-size:.85rem;color:var(--tm);padding:8px 12px;background:var(--bgi);border-radius:10px;"></div></div><div class="mf"><label>مقدار الزكاة المحسوب (KWD)</label><div id="zpCalc" style="font-size:1rem;font-weight:800;color:var(--glb);padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;"></div></div><div class="mf"><label>تاريخ الدفع</label><input type="date" id="zpDt"></div><div class="mf"><label>المبلغ المدفوع (KWD)</label><input type="number" id="zpAmt" step="0.001" min="0"></div><div class="mf"><label>ملاحظة (اختياري)</label><input type="text" id="zpNt"></div><div class="mb"><button id="zpCnc" class="btn btgh">إلغاء</button><button id="zpCnf" class="btn btg"><i class="fas fa-check"></i> تأكيد الدفع</button></div></div></div>
-<div id="clMod" class="modal"><div class="mc"><h3><i class="fas fa-cloud" style="color:var(--kwd)"></i> المزامنة السحابية عبر الأجهزة</h3><p style="font-size:.82rem;color:var(--tm);margin-bottom:14px;line-height:1.7;">بياناتك محفوظة تلقائياً ومتاحة على أي جهاز باستخدام معرّفك.</p><div class="mf"><label>معرّفك الشخصي (UID)</label><div class="ub" id="uidD">---</div></div><div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;"><button class="btn btgh btsm" id="cpyUID"><i class="fas fa-copy"></i> نسخ المعرّف</button><button class="btn btsm btdr" id="newUID"><i class="fas fa-rotate"></i> معرّف جديد</button></div><hr class="sp"><div class="mf"><label>استيراد من جهاز آخر — أدخل UID</label><input type="text" id="impUID" placeholder="UID من الجهاز الآخر" style="width:100%;direction:ltr;letter-spacing:1px;"></div><div class="mf"><label>Supabase URL (اختياري)</label><input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co" style="width:100%;direction:ltr;"></div><div class="mf"><label>Supabase Anon Key (اختياري)</label><input type="text" id="sbKey" placeholder="eyJ..." style="width:100%;direction:ltr;font-size:.75rem;"></div><div id="clStat" style="font-size:.8rem;color:var(--tm);padding:8px 12px;background:var(--bgi);border-radius:10px;margin-bottom:14px;"></div><div class="mb"><button id="clCnc" class="btn btgh">إغلاق</button><button id="ldUID" class="btn btgh btsm"><i class="fas fa-cloud-download-alt"></i> تحميل من UID</button><button id="fSync" class="btn btg"><i class="fas fa-cloud-upload-alt"></i> مزامنة الآن</button></div></div></div>
+<div id="clMod" class="modal"><div class="mc wide">
+  <h3><i class="fas fa-qrcode" style="color:var(--gld)"></i> المزامنة بين الأجهزة</h3>
+
+  <!-- Tabs -->
+  <div class="qr-tabs">
+    <div class="qr-tab active" data-tab="send">📤 أرسل بياناتي</div>
+    <div class="qr-tab" data-tab="receive">📥 استقبل من جهاز</div>
+    <div class="qr-tab" data-tab="cloud">☁️ Supabase</div>
+  </div>
+
+  <!-- TAB: SEND (show QR) -->
+  <div class="qr-panel active" id="qrPanelSend">
+    <div id="syncStatusBadge"></div>
+    <div class="qr-box">
+      <div class="qr-title"><i class="fas fa-qrcode" style="color:var(--gld)"></i> QR Code جهازك الحالي</div>
+      <div id="qrCanvas"></div>
+      <div class="qr-sub">امسح هذا الـ QR من الجهاز الثاني<br>أو شارك الـ UID يدوياً</div>
+    </div>
+    <div class="qr-uid-show" id="uidD">---</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btg btsm" id="cpyUID" style="flex:1;"><i class="fas fa-copy"></i> نسخ المعرّف</button>
+      <button class="btn btgh btsm" id="qrDlBtn" style="flex:1;"><i class="fas fa-download"></i> حفظ QR كصورة</button>
+      <button class="btn btgh btsm btdr" id="newUID"><i class="fas fa-rotate"></i> معرّف جديد</button>
+    </div>
+    <div class="qr-steps" style="margin-top:14px;">
+      <div class="qr-step"><div class="qr-step-num">1</div><span>افتح زغلول على الجهاز الثاني</span></div>
+      <div class="qr-step"><div class="qr-step-num">2</div><span>اضغط على زر "تزامن" ثم اختر "استقبل من جهاز"</span></div>
+      <div class="qr-step"><div class="qr-step-num">3</div><span>امسح QR أو الصق الـ UID يدوياً</span></div>
+      <div class="qr-step"><div class="qr-step-num">4</div><span>اضغط "تحميل البيانات" — تمت المزامنة!</span></div>
+    </div>
+  </div>
+
+  <!-- TAB: RECEIVE (scan or paste UID) -->
+  <div class="qr-panel" id="qrPanelReceive">
+    <div id="qrScanStatus"></div>
+    <div class="qr-scan-area" id="qrScanArea">
+      <i class="fas fa-camera"></i>
+      <div style="font-weight:700;margin-bottom:4px;">امسح QR Code</div>
+      <div style="font-size:.72rem;">اضغط هنا لفتح الكاميرا ومسح QR الجهاز الآخر</div>
+      <input type="file" id="qrFileInput" accept="image/*" capture="environment" hidden>
+    </div>
+    <div class="qr-divider">أو أدخل يدوياً</div>
+    <div class="mf">
+      <label>الـ UID من الجهاز الآخر</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="impUID" placeholder="الصق UID هنا" style="flex:1;direction:ltr;letter-spacing:.5px;font-size:.8rem;">
+        <button class="btn btg btsm" id="ldUID"><i class="fas fa-cloud-download-alt"></i> تحميل</button>
+      </div>
+    </div>
+    <div id="clStat" style="font-size:.78rem;color:var(--tm);padding:8px 12px;background:var(--bgi);border-radius:10px;margin:8px 0;display:none;"></div>
+    <div class="qr-steps">
+      <div class="qr-step"><div class="qr-step-num">1</div><span>على الجهاز الأول: افتح "أرسل بياناتي" واعرض QR</span></div>
+      <div class="qr-step"><div class="qr-step-num">2</div><span>امسح الـ QR أو الصق الـ UID في الحقل أعلاه</span></div>
+      <div class="qr-step"><div class="qr-step-num">3</div><span>اضغط "تحميل" — ستظهر البيانات فوراً</span></div>
+    </div>
+    <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);border-radius:12px;padding:10px 14px;font-size:.72rem;color:#fca5a5;margin-top:10px;">
+      ⚠️ التحميل سيستبدل بيانات هذا الجهاز بالكامل. تأكد قبل المتابعة.
+    </div>
+  </div>
+
+  <!-- TAB: SUPABASE -->
+  <div class="qr-panel" id="qrPanelCloud">
+    <div id="sbSyncStatus"></div>
+    <div class="sb-section">
+      <div class="sb-section-title"><i class="fas fa-database" style="color:var(--kwd)"></i> إعدادات Supabase (للمزامنة التلقائية اللحظية)</div>
+      <div class="mf"><label>Supabase URL</label><input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co" style="width:100%;direction:ltr;"></div>
+      <div class="mf"><label>Supabase Anon Key</label><input type="text" id="sbKey" placeholder="eyJ..." style="width:100%;direction:ltr;font-size:.75rem;"></div>
+      <div style="font-size:.7rem;color:var(--td);margin:6px 0 12px;">بمجرد الاتصال، تتزامن كل التغييرات لحظياً على جميع أجهزتك</div>
+      <button class="btn btg" id="fSync" style="width:100%;"><i class="fas fa-cloud-upload-alt"></i> اتصال ومزامنة الآن</button>
+    </div>
+    <div id="clStat2" style="font-size:.78rem;color:var(--tm);padding:8px 12px;background:var(--bgi);border-radius:10px;margin-top:10px;"></div>
+    <div style="background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.2);border-radius:14px;padding:14px;margin-top:10px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--glb);margin-bottom:8px;"><i class="fas fa-lock"></i> مفتاح التشفير AES-GCM</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <input type="password" id="encKeyInput" placeholder="مفتاح تشفير بياناتك (اختياري)" style="flex:1;direction:ltr;font-size:.78rem;">
+        <button class="btn btg btsm" id="setEncKeyBtn"><i class="fas fa-key"></i> تعيين</button>
+      </div>
+      <div style="font-size:.68rem;color:var(--td);line-height:1.6;">🔐 بياناتك تُشفَّر محلياً بمفتاحك قبل الرفع للسحابة. لا يمكن لأي طرف آخر قراءتها.</div>
+      <div id="encStatus" style="margin-top:6px;font-size:.72rem;color:var(--grn);"></div>
+    </div>
+  </div>
+
+  <div class="mb" style="margin-top:16px;"><button id="clCnc" class="btn btgh" style="width:100%;">إغلاق</button></div>
+</div></div>
+
+<!-- CHART FULLSCREEN -->
+<div class="wc-fullscreen" id="wcFullscreen">
+  <div class="wc-fs-header">
+    <div class="wc-fs-title"><i class="fas fa-chart-line" style="color:var(--gld)"></i> تطور الثروة عبر الزمن</div>
+    <button class="wc-fs-close" id="wcFsClose"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="wc-fs-canvas"><canvas id="whChartFs"></canvas></div>
+</div>
+
+<div id="bkRestoreMod" class="modal"><div class="mc">
+  <h3><i class="fas fa-clock-rotate-left" style="color:var(--kwd)"></i> استعادة نسخة احتياطية</h3>
+  <div id="bkRestoreInfo" style="background:var(--bgi);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:.82rem;color:var(--tm);"></div>
+  <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.18);border-radius:12px;padding:10px 14px;font-size:.72rem;color:#fca5a5;margin-bottom:14px;">⚠️ ستُستبدل بياناتك الحالية. سيتم حفظ نسخة احتياطية تلقائياً قبل الاستعادة.</div>
+  <div class="mb"><button id="bkRestoreCnc" class="btn btgh">إلغاء</button><button id="bkRestoreCnf" class="btn btg"><i class="fas fa-clock-rotate-left"></i> استعادة</button></div>
+</div></div>
+
 <script>
 (function(){
 'use strict';
@@ -510,7 +903,7 @@ const CFG={URL:'',KEY:'',TBL:'zagloul_state'};
 // ══════════════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════════════
-const SK='zagloul_v7',UK='zagloul_uid';
+const SK='zagloul_v13',UK='zagloul_uid';
 const TOZ=31.1034768,NIS=85,ZR=0.025,HYD=354;
 const FB_EGP=159.5,FB_XAU=40.60;
 const GW=Object.freeze({usd:.40,eur:.25,xau:.15,cny:.10,gbp:.05,jpy:.05});
@@ -542,6 +935,7 @@ let S={
 let pieC=null,wlC=null,pCr=null,pDt=null;
 let sbC=null,rtCh=null,syncT=null;
 let activePeriod='1M';
+let schedSyncEnc=null; // will be set after encryption module loads
 
 // ══════════════════════════════════════════════════════
 // UID
@@ -587,7 +981,7 @@ function ser(){
     credits:S.credits,debts:S.debts,bullions:S.bullions,zakatGP:S.zakatGP,
     wealthHistory:S.wealthHistory,startW:S.startW,
     rates:S.rates,gwb:S.gwb,gwbH:S.gwbH,startGwb:S.startGwb,
-    _at:new Date().toISOString(),v:7
+    _at:new Date().toISOString(),v:13
   };
 }
 function apply(d){
@@ -601,6 +995,8 @@ function apply(d){
   if(d.rates){S.rates.egp=d.rates.egp||FB_EGP;S.rates.xau=d.rates.xau||FB_XAU;}
   if(d.gwb)S.gwb=Object.assign({...GF},d.gwb);
   S.gwbH=d.gwbH||[];S.startGwb=d.startGwb||0;
+  // Migrate old field names
+  S.incomes.forEach(i=>{if(i.lastProcessedMonth&&!i.lastPM)i.lastPM=i.lastProcessedMonth;});
   S._at=d._at||null;
 }
 
@@ -661,7 +1057,7 @@ function save(){
   try{localStorage.setItem(SK,JSON.stringify(ser()));}catch(e){}
 }
 function load(){
-  const oldKeys=['zagloul_v6','zagloul_v5','zagloul_state_v5','zagloul_state_v4','zaghloul_finance'];
+  const oldKeys=['zagloul_v12','zagloul_v11','zagloul_v10','zagloul_v9','zagloul_v8','zagloul_v7','zagloul_v6','zagloul_v5','zagloul_state_v5','zagloul_state_v4','zaghloul_finance','zaghlol_finance'];
   let raw=localStorage.getItem(SK);
   if(!raw){for(const k of oldKeys){raw=localStorage.getItem(k);if(raw)break;}}
   if(raw){try{apply(JSON.parse(raw));}catch(e){}}
@@ -790,14 +1186,16 @@ function ctr(el,from,to,ms,dec){
 // ══════════════════════════════════════════════════════
 function render(rec=true){
   const w=wealth(),cur=w.tot;
-  if(rec&&isFinite(cur)){
-    const l=S.wealthHistory[S.wealthHistory.length-1];
-    if(!l||Math.abs(l.v-cur)>.0005){
+  if(rec&&isFinite(cur)&&cur>0){
+    const _wh=S.wealthHistory;
+    const l=_wh.length?_wh[_wh.length-1]:null;
+    const _lv=l?(l.v||l.total||0):0;
+    if(!l||Math.abs(_lv-cur)>.0005){
       S.wealthHistory.push({ts:Date.now(),v:cur});
       if(S.wealthHistory.length>2000)S.wealthHistory.shift();
     }
   }
-  if(!S.startW&&cur>0)S.startW=cur;
+  if((!S.startW||S.startW===0)&&cur>0)S.startW=cur;
   const st=S.startW||cur,pnl=cur-st,pct=st?(pnl/st)*100:0;
 
   document.getElementById('twd').innerHTML=cur.toFixed(3)+'&nbsp;<small>KWD</small>';
@@ -831,7 +1229,8 @@ function render(rec=true){
   document.getElementById('dtCnt').innerText=dc+' '+(dc===1?'دين':'ديون');
 
   rCrList();rDtList();pie(w);wlChart();rInc();rExp();rGoals();rZakat();rCF();
-  schedSync();
+  renderAdvanced();
+  if(typeof schedSyncEnc==="function")schedSyncEnc();else schedSync();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1164,113 +1563,272 @@ function pie(w){
   });
 }
 
+
+// ══════════════════════════════════════════
+// WEALTH CHART — FULL FEATURED ENGINE
+// ══════════════════════════════════════════
+let activeChartType='line';  // line | bar | area
+let compareGWB=false;
+let wlCFs=null;  // fullscreen chart instance
+
+function normalizeHistory(arr){
+  // Normalize old {timestamp,total} format to {ts,v}
+  return arr.map(p=>({ts:p.ts||p.timestamp||Date.now(),v:p.v||p.total||0})).filter(p=>p.v>0);
+}
 function getFilteredHistory(){
   if(!S.wealthHistory.length)return[];
-  if(activePeriod==='ALL')return S.wealthHistory;
+  const norm=normalizeHistory(S.wealthHistory);
+  if(activePeriod==='ALL')return norm;
   const cutoff=Date.now()-PERIODS[activePeriod];
-  const filtered=S.wealthHistory.filter(p=>p.ts>=cutoff);
-  if(filtered.length===0)return S.wealthHistory.slice(-2);
-  return filtered;
+  const filtered=norm.filter(p=>p.ts>=cutoff);
+  return filtered.length>0?filtered:norm.slice(-Math.min(5,norm.length));
+}
+
+function downsample(arr,max){
+  if(arr.length<=max)return arr;
+  const step=Math.ceil(arr.length/max);
+  return arr.filter((_,i)=>i%step===0||i===arr.length-1);
+}
+
+function fmtLabel(ts){
+  const d=new Date(ts);
+  if(activePeriod==='1D')return d.toLocaleTimeString('ar-KW',{timeZone:'Asia/Kuwait',hour:'2-digit',minute:'2-digit'});
+  if(activePeriod==='1W')return d.toLocaleDateString('ar-KW',{timeZone:'Asia/Kuwait',weekday:'short',day:'2-digit'});
+  if(activePeriod==='1M'||activePeriod==='3M')return d.toLocaleDateString('ar-KW',{timeZone:'Asia/Kuwait',month:'2-digit',day:'2-digit'});
+  return d.toLocaleDateString('ar-KW',{timeZone:'Asia/Kuwait',month:'short',year:'2-digit'});
+}
+
+function buildChartDatasets(pts,data,lineColor,fillColor){
+  const base={
+    label:'الثروة (KWD)',
+    data,
+    borderColor:lineColor,
+    borderWidth:2.5,
+    pointRadius:data.length<30?3:0,
+    pointHoverRadius:6,
+    pointHoverBackgroundColor:lineColor,
+    pointHoverBorderColor:'#fff',
+    pointHoverBorderWidth:2,
+  };
+  if(activeChartType==='bar'){
+    return[Object.assign({},base,{
+      type:'bar',
+      backgroundColor:data.map((_,i)=>i===data.length-1?lineColor:(data[i]>=(data[i-1]||data[i])?'rgba(74,222,128,.55)':'rgba(248,113,113,.55)')),
+      borderRadius:4,borderSkipped:false,fill:false
+    })];
+  }
+  // line or area
+  base.tension=.35;
+  base.fill=activeChartType==='area'?'origin':true;
+  base.backgroundColor=c2=>{
+    const g=c2.chart.ctx.createLinearGradient(0,0,0,c2.chart.height);
+    if(activeChartType==='area'){
+      g.addColorStop(0,fillColor+'.22)');g.addColorStop(1,fillColor+'.01)');
+    }else{
+      g.addColorStop(0,fillColor+'.14)');g.addColorStop(1,fillColor+'.01)');
+    }
+    return g;
+  };
+  const datasets=[base];
+  // GWB comparison overlay
+  if(compareGWB&&S.gwbH&&S.gwbH.length>1){
+    const rate=gwbRate()||1;
+    const gwbFiltered=activePeriod==='ALL'?S.gwbH:S.gwbH.filter(p=>p.t>=(Date.now()-PERIODS[activePeriod]));
+    const gwbPts=downsample(gwbFiltered,200);
+    // interpolate GWB values to KWD for same-scale comparison
+    const gwbData=gwbPts.map(p=>p.g*rate);
+    // align label count — use pts timestamps, find nearest gwb value
+    datasets.push({
+      label:'GWB → KWD',
+      data:pts.map(p=>{
+        const nearest=S.gwbH.reduce((a,b)=>Math.abs(b.t-p.ts)<Math.abs(a.t-p.ts)?b:a,S.gwbH[0]);
+        return nearest.g*rate;
+      }),
+      borderColor:'rgba(99,102,241,.8)',
+      borderWidth:1.5,
+      borderDash:[6,3],
+      backgroundColor:'transparent',
+      fill:false,tension:.35,
+      pointRadius:0,pointHoverRadius:4,
+      pointHoverBackgroundColor:'#818cf8',
+      label:'مكافئ GWB (KWD)'
+    });
+  }
+  return datasets;
+}
+
+const crosshairPlugin={
+  id:'crosshair',
+  afterDraw:chart=>{
+    if(!chart.tooltip._active||!chart.tooltip._active.length)return;
+    const ctx2=chart.ctx,x=chart.tooltip._active[0].element.x;
+    const{top,bottom}=chart.chartArea;
+    ctx2.save();
+    ctx2.beginPath();ctx2.moveTo(x,top);ctx2.lineTo(x,bottom);
+    ctx2.lineWidth=1;ctx2.strokeStyle='rgba(212,175,55,.4)';ctx2.setLineDash([5,4]);
+    ctx2.stroke();ctx2.restore();
+  }
+};
+
+function buildChartConfig(labels,datasets,lineColor){
+  return{
+    data:{labels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{
+          ticks:{color:'#525d74',maxTicksLimit:8,font:{size:10},maxRotation:0},
+          grid:{color:'rgba(255,255,255,.03)'},
+          border:{display:false}
+        },
+        y:{
+          position:'right',
+          ticks:{
+            color:'#525d74',font:{size:10},
+            callback:v=>{
+              if(v>=1000)return (v/1000).toFixed(1)+'K';
+              return v.toFixed(1);
+            }
+          },
+          grid:{color:'rgba(255,255,255,.04)'},
+          border:{display:false}
+        }
+      },
+      plugins:{
+        legend:{
+          display:compareGWB,
+          labels:{color:'#8d96b0',font:{family:'Tajawal',size:11},usePointStyle:true,pointStyleWidth:8}
+        },
+        tooltip:{
+          backgroundColor:'#111827',
+          borderColor:'rgba(212,175,55,.25)',
+          borderWidth:1,
+          titleColor:'#f3cd6b',
+          bodyColor:'#8d96b0',
+          padding:12,
+          cornerRadius:12,
+          displayColors:true,
+          callbacks:{
+            title:items=>{
+              try{
+                const p=getFilteredHistory();
+                const ds=downsample(p.length>1?p:[p[0],p[0]],200);
+                const ts=ds[items[0]?.dataIndex]?.ts;
+                if(!ts)return labels[items[0]?.dataIndex]||'';
+                return new Date(ts).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait',year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+              }catch(_){return labels[items[0]?.dataIndex]||'';}
+            },
+            label:c=>{
+              const v=c.parsed.y;
+              const lbl=c.dataset.label||'الثروة';
+              return ' '+lbl+': '+v.toFixed(3)+' KWD';
+            },
+            afterLabel:c=>{
+              // show % from period start
+              const data=c.dataset.data;
+              if(!data||!data[0])return '';
+              const pct=data[0]>0?((c.parsed.y-data[0])/data[0])*100:0;
+              return ' '+(pct>=0?'\u25b2 +':'\u25bc ')+pct.toFixed(2)+'% من بداية الفترة';
+            }
+          }
+        }
+      },
+      animation:{duration:350,easing:'easeInOutQuart'}
+    },
+    plugins:[crosshairPlugin]
+  };
+}
+
+function updateKPI(data,hist){
+  if(!data||!data.length)return;
+  const first=data[0]||0,last=data[data.length-1]||0;
+  const chg=first>0?((last-first)/first)*100:0;
+  const min=Math.min(...data),max=Math.max(...data);
+  const avg=data.reduce((a,b)=>a+b,0)/data.length;
+  const sign=chg>=0?'+':'';
+  const col=chg>=0?'var(--grn)':'var(--red)';
+  const el=id=>document.getElementById(id);
+  if(el('kpiCurrent'))el('kpiCurrent').innerText=last.toFixed(3)+' KWD';
+  if(el('kpiChange')){
+    el('kpiChange').innerHTML=`<span style="color:${col}">${sign}${chg.toFixed(2)}%</span><br><span style="font-size:.65rem;color:var(--td)">${sign}${(last-first).toFixed(3)} KWD</span>`;
+  }
+  if(el('kpiHigh'))el('kpiHigh').innerText=max.toFixed(3)+' KWD';
+  if(el('kpiLow'))el('kpiLow').innerText=min.toFixed(3)+' KWD';
+  if(el('kpiAvg'))el('kpiAvg').innerText=avg.toFixed(3)+' KWD';
+  if(el('kpiPoints'))el('kpiPoints').innerText=hist.length.toLocaleString('ar-KW');
+  // trend bar
+  const trendEl=document.getElementById('wc-trend');
+  if(trendEl){
+    const maxWlt=S.wealthHistory.length?S.wealthHistory[S.wealthHistory.length-1].v:0;
+    const startWlt=S.startW||maxWlt;
+    const allChg=startWlt>0?((maxWlt-startWlt)/startWlt)*100:0;
+    const allSign=allChg>=0?'+':'';
+    const allCol=allChg>=0?'var(--grn)':'var(--red)';
+    trendEl.innerHTML=`
+      <span class="wc-trend-badge ${allChg>=0?'wc-trend-up':'wc-trend-down'}">
+        <i class="fas fa-${allChg>=0?'arrow-trend-up':'arrow-trend-down'}"></i>
+        ${allSign}${allChg.toFixed(2)}% منذ البداية
+      </span>
+      <span>أعلى نقطة: <b style="font-family:'Plus Jakarta Sans',sans-serif;color:var(--tp)">${(S.wealthHistory.length?Math.max(...S.wealthHistory.map(p=>p.v)):0).toFixed(3)} KWD</b></span>
+    `;
+  }
 }
 
 function wlChart(){
   const hist=getFilteredHistory();
   const emEl=document.getElementById('chartEmpty');
+
   if(!hist.length){
-    const el=document.getElementById('chartStats');
-    if(el)el.innerHTML='';
     if(emEl)emEl.style.display='flex';
-    if(wlC){wlC.data.labels=[];wlC.data.datasets[0].data=[];wlC.update('none');}
+    if(wlC){wlC.destroy();wlC=null;}
     return;
   }
   if(emEl)emEl.style.display='none';
 
-  // تحديد عدد النقاط المعروضة (تخفيف للرسم السلس)
-  const maxPts=200;
-  let pts=hist;
-  if(pts.length>maxPts){
-    const step=Math.ceil(pts.length/maxPts);
-    pts=pts.filter((_,i)=>i%step===0||i===pts.length-1);
-  }
-
-  const labels=pts.map(p=>new Date(p.ts).toLocaleString('ar-KW',{
-    timeZone:'Asia/Kuwait',
-    month:'2-digit',day:'2-digit',
-    hour:activePeriod==='1D'||activePeriod==='1W'?'2-digit':undefined,
-    minute:activePeriod==='1D'?'2-digit':undefined
-  }));
+  const pts=downsample(hist.length>1?hist:[hist[0],hist[0]],300);
+  const labels=pts.map(p=>fmtLabel(p.ts));
   const data=pts.map(p=>p.v);
 
-  const first=data[0],last=data[data.length-1];
+  const first=data[0]||0,last=data[data.length-1]||0;
   const chg=first>0?((last-first)/first)*100:0;
-  const min=Math.min(...data),max=Math.max(...data);
-  const statsEl=document.getElementById('chartStats');
-  if(statsEl){
-    const sign=chg>=0?'+':'';
-    statsEl.innerHTML=`
-      <span style="color:${chg>=0?'var(--grn)':'var(--red)'}"><i class="fas fa-${chg>=0?'arrow-trend-up':'arrow-trend-down'}"></i> ${sign}${chg.toFixed(2)}%</span>
-      <span>أدنى: <b style="font-family:'Plus Jakarta Sans',sans-serif;color:var(--tp)">${min.toFixed(3)} KWD</b></span>
-      <span>أعلى: <b style="font-family:'Plus Jakarta Sans',sans-serif;color:var(--tp)">${max.toFixed(3)} KWD</b></span>
-      <span>نقاط: <b style="font-family:'Plus Jakarta Sans',sans-serif;color:var(--tp)">${hist.length}</b></span>
-    `;
-  }
+  const lineColor=chg>=0?'#4ade80':'#f87171';
+  const fillColor=chg>=0?'rgba(74,222,128,':'rgba(248,113,113,';
+
+  updateKPI(data,hist);
+
+  const datasets=buildChartDatasets(pts,data,lineColor,fillColor);
+  const cfg=buildChartConfig(labels,datasets,lineColor);
 
   const ctx=document.getElementById('whChart').getContext('2d');
-  const lineColor=chg>=0?'#4ade80':'#f87171';
-  const fillColor=chg>=0?'rgba(74,222,128,':' rgba(248,113,113,';
-
   if(wlC){
+    wlC.config.type=activeChartType==="bar"?"bar":"line";
     wlC.data.labels=labels;
-    wlC.data.datasets[0].data=data;
-    wlC.data.datasets[0].borderColor=lineColor;
-    wlC.options.plugins.tooltip.callbacks.title=items=>labels[items[0].dataIndex];
+    wlC.data.datasets=datasets;
+    wlC.options=cfg.options;
+    wlC.options.plugins.legend.display=compareGWB;
     wlC.update('none');
     return;
   }
-  wlC=new Chart(ctx,{
-    type:'line',
-    data:{
-      labels,
-      datasets:[{
-        label:'الثروة (KWD)',data,
-        borderColor:lineColor,
-        backgroundColor:c2=>{
-          const g=c2.chart.ctx.createLinearGradient(0,0,0,c2.chart.height);
-          g.addColorStop(0,fillColor+'.18)');g.addColorStop(1,fillColor+'.01)');return g;
-        },
-        tension:.35,fill:true,pointRadius:0,borderWidth:2.5,
-        pointHoverRadius:5,pointHoverBackgroundColor:lineColor
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      scales:{
-        x:{ticks:{color:'#525d74',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}},
-        y:{ticks:{color:'#525d74',font:{size:10},callback:v=>v.toFixed(1)},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}}
-      },
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#1a2038',borderColor:'rgba(212,175,55,.3)',borderWidth:1,
-          titleColor:'#f3cd6b',bodyColor:'#8d96b0',
-          callbacks:{label:c=>' '+c.parsed.y.toFixed(3)+' KWD'}
-        }
-      },
-      animation:{duration:400}
-    },
-    plugins:[{
-      id:'ch',
-      afterDraw:ch=>{
-        if(!ch.tooltip._active||!ch.tooltip._active.length)return;
-        const cx=ch.ctx,x=ch.tooltip._active[0].element.x;
-        const{top,bottom}=ch.chartArea;
-        cx.save();cx.beginPath();cx.moveTo(x,top);cx.lineTo(x,bottom);
-        cx.lineWidth=1;cx.strokeStyle='rgba(212,175,55,.35)';cx.setLineDash([4,4]);
-        cx.stroke();cx.restore();
-      }
-    }]
-  });
+  wlC=new Chart(ctx,{type:activeChartType==='bar'?'bar':'line',...cfg});
+}
+
+function wlChartFs(){
+  // Draw in fullscreen canvas
+  const hist=getFilteredHistory();
+  if(!hist.length)return;
+  const pts=downsample(hist,500);
+  const labels=pts.map(p=>fmtLabel(p.ts));
+  const data=pts.map(p=>p.v);
+  const first=data[0],last=data[data.length-1];
+  const chg=first>0?((last-first)/first)*100:0;
+  const lineColor=chg>=0?'#4ade80':'#f87171';
+  const fillColor=chg>=0?'rgba(74,222,128,':'rgba(248,113,113,';
+  const datasets=buildChartDatasets(pts,data,lineColor,fillColor);
+  const cfg=buildChartConfig(labels,datasets,lineColor);
+  const ctx=document.getElementById('whChartFs').getContext('2d');
+  if(wlCFs){wlCFs.destroy();}
+  wlCFs=new Chart(ctx,{type:activeChartType==='bar'?'bar':'line',...cfg});
 }
 
 function bindPeriodButtons(){
@@ -1279,10 +1837,65 @@ function bindPeriodButtons(){
       document.querySelectorAll('.cp-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       activePeriod=btn.dataset.p;
-      // destroy and recreate chart for color update
+      if(wlC){wlC.destroy();wlC=null;}
+      wlChart();
+      const fs=document.getElementById('wcFullscreen');
+      if(fs&&fs.classList.contains('open'))wlChartFs();
+    });
+  });
+  // Chart type buttons
+  document.querySelectorAll('.wt-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.wt-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeChartType=btn.dataset.type;
       if(wlC){wlC.destroy();wlC=null;}
       wlChart();
     });
+  });
+  // Compare GWB toggle
+  const cmpBtn=document.getElementById('compareToggle');
+  if(cmpBtn){
+    cmpBtn.addEventListener('click',()=>{
+      compareGWB=!compareGWB;
+      cmpBtn.classList.toggle('active',compareGWB);
+      if(wlC){wlC.destroy();wlC=null;}
+      wlChart();
+    });
+  }
+  // Download chart
+  const dlBtn=document.getElementById('chartDlBtn');
+  if(dlBtn){
+    dlBtn.addEventListener('click',()=>{
+      if(!wlC)return;
+      const a=document.createElement('a');
+      a.download='zagloul-wealth-chart.png';
+      a.href=wlC.toBase64Image('image/png',1.0);
+      a.click();
+      nt('📥 تم تحميل المخطط','suc');
+    });
+  }
+  // Expand / fullscreen
+  const expBtn=document.getElementById('chartExpandBtn');
+  const fsEl=document.getElementById('wcFullscreen');
+  const fsClose=document.getElementById('wcFsClose');
+  if(expBtn&&fsEl){
+    expBtn.addEventListener('click',()=>{
+      fsEl.classList.add('open');
+      setTimeout(()=>wlChartFs(),100);
+    });
+  }
+  if(fsClose&&fsEl){
+    fsClose.addEventListener('click',()=>{
+      fsEl.classList.remove('open');
+      if(wlCFs){wlCFs.destroy();wlCFs=null;}
+    });
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&fsEl&&fsEl.classList.contains('open')){
+      fsEl.classList.remove('open');
+      if(wlCFs){wlCFs.destroy();wlCFs=null;}
+    }
   });
 }
 
@@ -1387,7 +2000,7 @@ function procInc(){
   const ld=new Date(td.getFullYear(),td.getMonth()+1,0).getDate();let ch=false;
   S.incomes.forEach(i=>{
     if(!i.dueDay)return;const ef=Math.min(i.dueDay,ld);
-    if(ef===day&&i.lastPM!==mk){S.assets.cashKWD+=i.amount;i.lastPM=mk;ch=true;nt(`💰 استلمت ${i.subType} (${i.amount.toFixed(2)} KWD)`);}
+    const _pm=i.lastPM||i.lastProcessedMonth||null;if(ef===day&&_pm!==mk){S.assets.cashKWD+=i.amount;i.lastPM=mk;i.lastProcessedMonth=mk;ch=true;nt(`💰 استلمت ${i.subType} (${i.amount.toFixed(2)} KWD)`);}
   });
   if(ch){syncIn();render();}
 }
@@ -1514,45 +2127,302 @@ function bindModals(){
 // ══════════════════════════════════════════════════════
 // CLOUD SYNC MODAL
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// QR + CLOUD SYNC — FULL IMPLEMENTATION
+// ══════════════════════════════════════════
+let qrInstance=null;
+
+function showSyncStatus(elId,type,msg){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  const cls={ok:'qr-status-ok',err:'qr-status-err',wait:'qr-status-wait'};
+  const ic={ok:'fa-circle-check',err:'fa-circle-exclamation',wait:'fa-circle-notch fa-spin'};
+  el.innerHTML=`<div class="qr-status-badge ${cls[type]||cls.wait}"><i class="fas ${ic[type]||ic.wait}"></i> ${msg}</div>`;
+}
+
+function generateQR(uid){
+  const el=document.getElementById('qrCanvas');
+  if(!el)return;
+  el.innerHTML='';
+  try{
+    qrInstance=new QRCode(el,{
+      text:uid,
+      width:200,height:200,
+      colorDark:'#000000',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+  }catch(e){
+    // Fallback: QRCode.js not loaded, show UID as large text
+    el.innerHTML='<div style="padding:20px;background:#fff;border-radius:12px;font-family:monospace;font-size:.7rem;word-break:break-all;color:#000;max-width:200px;margin:0 auto;">'+uid+'</div>';
+  }
+}
+
+function downloadQR(){
+  const canvas=document.querySelector('#qrCanvas canvas');
+  if(!canvas){nt('لا يوجد QR للتحميل','err');return;}
+  const a=document.createElement('a');
+  a.download='zagloul-qr-'+UID.slice(0,8)+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+  nt('📥 تم حفظ QR Code','suc');
+}
+
+// Encode state as compressed base64 for QR-only (offline) transfer
+function encodeStateForQR(){
+  try{
+    const payload=JSON.stringify({uid:UID,_at:S._at,v:13});
+    return btoa(unescape(encodeURIComponent(payload)));
+  }catch(e){return UID;}
+}
+
+function decodeQRPayload(str){
+  // try base64 JSON first
+  try{
+    const decoded=JSON.parse(decodeURIComponent(escape(atob(str))));
+    if(decoded.uid)return decoded.uid;
+  }catch(_){}
+  // else treat as raw UID
+  return str.trim();
+}
+
+// Camera-based QR scanning using jsQR (loaded on demand)
+async function startCameraScan(){
+  const statusEl=document.getElementById('qrScanStatus');
+  showSyncStatus('qrScanStatus','wait','جاري تحميل الكاميرا...');
+  try{
+    // Load jsQR dynamically
+    if(!window.jsQR){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+        s.onload=res;s.onerror=rej;document.head.appendChild(s);
+      });
+    }
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    // Create video element
+    const video=document.createElement('video');
+    video.srcObject=stream;video.setAttribute('playsinline',true);
+    video.style.cssText='width:100%;border-radius:12px;margin-bottom:8px;';
+    const scanArea=document.getElementById('qrScanArea');
+    scanArea.innerHTML='';
+    scanArea.appendChild(video);
+    const stopBtn=document.createElement('button');
+    stopBtn.className='btn btdr btsm';stopBtn.innerHTML='<i class="fas fa-stop"></i> إيقاف الكاميرا';
+    stopBtn.style.cssText='width:100%;margin-top:8px;';
+    scanArea.appendChild(stopBtn);
+    await video.play();
+    showSyncStatus('qrScanStatus','wait','وجّه الكاميرا نحو QR Code...');
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    let scanning=true;
+    stopBtn.onclick=()=>{
+      scanning=false;
+      stream.getTracks().forEach(t=>t.stop());
+      scanArea.innerHTML='<i class="fas fa-camera"></i><div style="font-weight:700;margin-bottom:4px;">امسح QR Code</div><div style="font-size:.72rem;">اضغط هنا لفتح الكاميرا</div>';
+      scanArea.onclick=startCameraScan;
+      document.getElementById('qrScanStatus').innerHTML='';
+    };
+    function scanFrame(){
+      if(!scanning||video.readyState!==video.HAVE_ENOUGH_DATA){if(scanning)requestAnimationFrame(scanFrame);return;}
+      canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      const code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'dontInvert'});
+      if(code&&code.data){
+        scanning=false;
+        stream.getTracks().forEach(t=>t.stop());
+        const uid=decodeQRPayload(code.data);
+        document.getElementById('impUID').value=uid;
+        scanArea.innerHTML='<i class="fas fa-check-circle" style="color:var(--grn);"></i><div style="font-weight:700;color:var(--grn);">تم مسح QR بنجاح!</div><div style="font-size:.72rem;">اضغط "تحميل" لاستيراد البيانات</div>';
+        showSyncStatus('qrScanStatus','ok','تم التعرف على الـ UID — اضغط تحميل');
+        return;
+      }
+      requestAnimationFrame(scanFrame);
+    }
+    requestAnimationFrame(scanFrame);
+  }catch(e){
+    showSyncStatus('qrScanStatus','err','تعذر فتح الكاميرا — الصق الـ UID يدوياً');
+  }
+}
+
+// Handle image file (screenshot of QR)
+async function handleQRImageFile(file){
+  showSyncStatus('qrScanStatus','wait','جاري قراءة الصورة...');
+  try{
+    if(!window.jsQR){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+        s.onload=res;s.onerror=rej;document.head.appendChild(s);
+      });
+    }
+    const img=new Image();
+    img.src=URL.createObjectURL(file);
+    await new Promise(r=>img.onload=r);
+    const canvas=document.createElement('canvas');
+    canvas.width=img.width;canvas.height=img.height;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0);
+    const imageData=ctx.getImageData(0,0,img.width,img.height);
+    const code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'attemptBoth'});
+    if(code&&code.data){
+      const uid=decodeQRPayload(code.data);
+      document.getElementById('impUID').value=uid;
+      showSyncStatus('qrScanStatus','ok','تم قراءة QR — اضغط تحميل');
+      nt('✅ تم قراءة QR Code بنجاح');
+    }else{
+      showSyncStatus('qrScanStatus','err','لم يتم التعرف على QR — جرب صورة أوضح');
+    }
+  }catch(e){
+    showSyncStatus('qrScanStatus','err','خطأ في قراءة الصورة');
+  }
+}
+
+// Load data from another UID (Supabase or localStorage export)
+async function loadFromUID(uid){
+  if(!uid){nt('❌ أدخل UID صحيحاً','err');return false;}
+  const stEl=document.getElementById('clStat');
+  if(stEl){stEl.style.display='block';stEl.innerText='جاري التحميل...';}
+  showSyncStatus('qrScanStatus','wait','جاري جلب البيانات...');
+  if(sbC){
+    const d=await pull(uid);
+    if(d){
+      if(!confirm('سيتم استبدال بيانات هذا الجهاز ببيانات الجهاز الآخر. متأكد؟')){
+        if(stEl)stEl.style.display='none';
+        document.getElementById('qrScanStatus').innerHTML='';
+        return false;
+      }
+      apply(d);unsubRT();UID=uid;localStorage.setItem(UK,uid);save();syncIn();render();
+      subRT(UID);
+      if(stEl){stEl.innerText='✅ تم التحميل بنجاح من Supabase';stEl.style.display='block';}
+      showSyncStatus('qrScanStatus','ok','تمت المزامنة بنجاح! ✅');
+      nt('✅ تم تحميل البيانات من Supabase + Realtime فعّال','suc');
+      return true;
+    }else{
+      if(stEl){stEl.innerText='❌ لا توجد بيانات لهذا المعرّف في السحابة';stEl.style.display='block';}
+      showSyncStatus('qrScanStatus','err','لا توجد بيانات لهذا المعرّف');
+      nt('❌ لا توجد بيانات في السحابة لهذا المعرّف','err');
+      return false;
+    }
+  }else{
+    // Offline: just set the UID so both devices share same localStorage key in same browser (limited use)
+    if(!confirm('لا يوجد اتصال بـ Supabase. سيتم فقط تعيين الـ UID محلياً. متابعة؟')){return false;}
+    UID=uid;localStorage.setItem(UK,uid);
+    showSyncStatus('qrScanStatus','wait','تم تعيين الـ UID — أضف Supabase للمزامنة الكاملة');
+    nt('⚠️ تم تعيين UID — أضف Supabase لمزامنة البيانات فعلياً','wrn');
+    return true;
+  }
+}
+
+function openSyncModal(){
+  // Reset UI
+  document.getElementById('uidD').innerText=UID;
+  const sbUrlEl=document.getElementById('sbUrl');
+  const sbKeyEl=document.getElementById('sbKey');
+  if(sbUrlEl)sbUrlEl.value=CFG.URL;
+  if(sbKeyEl)sbKeyEl.value=CFG.KEY;
+  const impEl=document.getElementById('impUID');if(impEl)impEl.value='';
+  const clSt=document.getElementById('clStat');if(clSt)clSt.style.display='none';
+  const sbSt=document.getElementById('sbSyncStatus');
+  if(sbSt&&typeof showSyncStatus==='function'){
+    if(sbC)showSyncStatus('sbSyncStatus','ok','متصل بـ Supabase — Realtime فعّال');
+    else showSyncStatus('sbSyncStatus','wait','غير متصل — أضف بيانات Supabase أدناه');
+  }
+  document.getElementById('qrScanStatus').innerHTML='';
+  // Generate QR
+  setTimeout(()=>generateQR(UID),100);
+  openM('clMod');
+}
+
 function bindCloud(){
-  document.getElementById('cloudBtn').onclick=()=>{
-    document.getElementById('uidD').innerText=UID;
-    document.getElementById('sbUrl').value=CFG.URL;
-    document.getElementById('sbKey').value=CFG.KEY;
-    document.getElementById('impUID').value='';
-    document.getElementById('clStat').innerText=sbC?'متصل بـ Supabase ✅ — Realtime فعّال':'وضع محلي — أدخل بيانات Supabase للمزامنة السحابية';
-    openM('clMod');
-  };
+  // Tab switching
+  document.querySelectorAll('.qr-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.qr-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.qr-panel').forEach(p=>p.classList.remove('active'));
+      tab.classList.add('active');
+      const target='qrPanel'+tab.dataset.tab.charAt(0).toUpperCase()+tab.dataset.tab.slice(1);
+      const panel=document.getElementById(target);
+      if(panel)panel.classList.add('active');
+      if(tab.dataset.tab==='send')setTimeout(()=>generateQR(UID),80);
+    });
+  });
+
+  // Open modal
+  document.getElementById('cloudBtn').onclick=openSyncModal;
   document.getElementById('clCnc').onclick=()=>closeM('clMod');
+
+  // Copy UID
   document.getElementById('cpyUID').onclick=()=>{
     navigator.clipboard?.writeText(UID)
       .then(()=>nt('📋 تم نسخ المعرّف','suc'))
-      .catch(()=>nt('انسخ المعرّف يدوياً','wrn'));
+      .catch(()=>{
+        // manual copy fallback
+        const ta=document.createElement('textarea');ta.value=UID;ta.style.position='fixed';ta.style.opacity='0';
+        document.body.appendChild(ta);ta.select();
+        try{document.execCommand('copy');nt('📋 تم نسخ المعرّف','suc');}catch(_){nt('انسخ المعرّف يدوياً','wrn');}
+        ta.remove();
+      });
   };
+
+  // Download QR
+  const qrDlBtn=document.getElementById('qrDlBtn');
+  if(qrDlBtn)qrDlBtn.onclick=downloadQR;
+
+  // New UID
   document.getElementById('newUID').onclick=()=>{
-    if(!confirm('إنشاء معرّف جديد سيفصل البيانات السحابية. متأكد؟'))return;
+    if(!confirm('إنشاء معرّف جديد سيفصل بياناتك السحابية. هل أنت متأكد؟'))return;
     UID=mkUID();localStorage.setItem(UK,UID);
-    document.getElementById('uidD').innerText=UID;nt('🆕 تم إنشاء معرّف جديد','suc');
+    document.getElementById('uidD').innerText=UID;
+    generateQR(UID);
+    nt('🆕 تم إنشاء معرّف جديد','suc');
   };
+
+  // Camera scan
+  const scanArea=document.getElementById('qrScanArea');
+  if(scanArea){
+    scanArea.onclick=startCameraScan;
+  }
+
+  // Image file input (pick screenshot)
+  const fileInput=document.getElementById('qrFileInput');
+  if(fileInput){
+    fileInput.onchange=e=>{const f=e.target.files[0];if(f)handleQRImageFile(f);e.target.value='';};
+  }
+
+  // Load from UID button
+  const ldBtn=document.getElementById('ldUID');
+  if(ldBtn){
+    ldBtn.onclick=async()=>{
+      const uid=document.getElementById('impUID').value.trim();
+      const ok=await loadFromUID(uid);
+      if(ok)setTimeout(()=>closeM('clMod'),1200);
+    };
+  }
+
+  // Supabase connect
   document.getElementById('fSync').onclick=async()=>{
-    const url=document.getElementById('sbUrl').value.trim(),key=document.getElementById('sbKey').value.trim();
-    if(url&&key){
-      CFG.URL=url;CFG.KEY=key;
-      localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);
-      unsubRT();sbC=initSB(url,key);
-    }
-    if(!sbC){nt('❌ لم يتم الاتصال — تحقق من URL والـ Key','err');return;}
-    await push(UID);subRT(UID);nt('☁️ تمت المزامنة + Realtime فعّال','suc');closeM('clMod');
+    const url=document.getElementById('sbUrl').value.trim();
+    const key=document.getElementById('sbKey').value.trim();
+    if(!url||!key){nt('❌ أدخل Supabase URL والـ Key','err');return;}
+    showSyncStatus('sbSyncStatus','wait','جاري الاتصال...');
+    CFG.URL=url;CFG.KEY=key;
+    localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);
+    unsubRT();sbC=initSB(url,key);
+    if(!sbC){showSyncStatus('sbSyncStatus','err','فشل الاتصال — تحقق من البيانات');return;}
+    await push(UID);
+    subRT(UID);
+    showSyncStatus('sbSyncStatus','ok','متصل ومزامَن — Realtime فعّال ✅');
+    const st2=document.getElementById('clStat2');
+    if(st2)st2.innerText='✅ تم الاتصال. أي تغيير سيظهر فوراً على جميع أجهزتك.';
+    nt('☁️ Supabase متصل + Realtime فعّال','suc');
   };
-  document.getElementById('ldUID').onclick=async()=>{
-    const uid=document.getElementById('impUID').value.trim();if(!uid){nt('❌ أدخل UID صحيحاً','err');return;}
-    const url=document.getElementById('sbUrl').value.trim(),key=document.getElementById('sbKey').value.trim();
-    if(url&&key){CFG.URL=url;CFG.KEY=key;localStorage.setItem('z_sb_url',url);localStorage.setItem('z_sb_key',key);unsubRT();sbC=initSB(url,key);}
-    if(!sbC){nt('❌ أدخل بيانات Supabase أولاً','err');return;}
-    const d=await pull(uid);if(!d){nt('❌ لا توجد بيانات لهذا المعرّف','err');return;}
-    apply(d);unsubRT();UID=uid;localStorage.setItem(UK,uid);save();syncIn();render();
-    subRT(UID);nt('✅ تم تحميل البيانات + Realtime فعّال','suc');closeM('clMod');
-  };
+
+  // Close on Escape
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){const m=document.getElementById('clMod');if(m&&m.classList.contains('open'))closeM('clMod');}
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -1560,6 +2430,7 @@ function bindCloud(){
 // ══════════════════════════════════════════════════════
 function bindHeader(){
   document.getElementById('refreshBtn').onclick=fetchRates;
+  document.getElementById('xlExportBtn')?.addEventListener('click', exportToExcel);
   document.getElementById('resetBtn').onclick=()=>{
     if(confirm('مسح كل البيانات؟')){localStorage.removeItem(SK);location.reload();}
   };
@@ -1649,8 +2520,1072 @@ async function init(){
     subRT(UID);
   }else setSS('r','تخزين محلي');
 }
+
+
+// ══════════════════════════════════════════════════════
+// AES-GCM ENCRYPTION
+// ══════════════════════════════════════════════════════
+let encKey=null;
+
+async function deriveKey(passphrase){
+  const enc=new TextEncoder();
+  const keyMat=await crypto.subtle.importKey('raw',enc.encode(passphrase),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:enc.encode('zagloul_salt_v1'),iterations:100000,hash:'SHA-256'},
+    keyMat,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+  );
+}
+
+async function encryptPayload(data){
+  if(!encKey)return JSON.stringify(data);
+  try{
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const enc=new TextEncoder();
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},encKey,enc.encode(JSON.stringify(data)));
+    const arr=[...iv,...new Uint8Array(ct)];
+    return JSON.stringify({encrypted:true,data:btoa(String.fromCharCode(...arr))});
+  }catch(e){console.warn('enc fail',e);return JSON.stringify(data);}
+}
+
+async function decryptPayload(raw){
+  if(!encKey)return typeof raw==='string'?JSON.parse(raw):raw;
+  try{
+    const obj=typeof raw==='string'?JSON.parse(raw):raw;
+    if(!obj.encrypted)return obj;
+    const bytes=Uint8Array.from(atob(obj.data),c=>c.charCodeAt(0));
+    const iv=bytes.slice(0,12),ct=bytes.slice(12);
+    const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},encKey,ct);
+    return JSON.parse(new TextDecoder().decode(dec));
+  }catch(e){console.warn('dec fail',e);return typeof raw==='string'?JSON.parse(raw):raw;}
+}
+
+async function setEncryptionKey(passphrase){
+  if(!passphrase){encKey=null;localStorage.removeItem('z_enc_set');return false;}
+  encKey=await deriveKey(passphrase);
+  localStorage.setItem('z_enc_set','1');
+  return true;
+}
+
+// ══════════════════════════════════════════════════════
+// BACKUP SYSTEM (up to 10 backups)
+// ══════════════════════════════════════════════════════
+const BK_KEY='zagloul_backups';
+const MAX_BK=10;
+
+function getBackups(){
+  try{return JSON.parse(localStorage.getItem(BK_KEY)||'[]');}catch(e){return[];}
+}
+
+function saveBackup(tag){
+  try{
+    const bks=getBackups();
+    const payload=JSON.stringify(ser());
+    bks.unshift({id:Date.now(),tag:tag||'يدوي',size:payload.length,data:payload,ts:new Date().toISOString()});
+    while(bks.length>MAX_BK)bks.pop();
+    localStorage.setItem(BK_KEY,JSON.stringify(bks));
+    renderBackups();
+    return true;
+  }catch(e){console.warn('backup fail',e);return false;}
+}
+
+function restoreBackup(id){
+  const bks=getBackups();
+  const bk=bks.find(b=>b.id===id);
+  if(!bk)return;
+  document.getElementById('bkRestoreInfo').innerText=`النسخة: ${bk.tag} — ${new Date(bk.ts).toLocaleString('ar-KW')} — ${Math.round(bk.size/1024)} KB`;
+  document.getElementById('bkRestoreMod').dataset.restoreId=id;
+  openM('bkRestoreMod');
+}
+
+function renderBackups(){
+  const bks=getBackups();
+  const el=document.getElementById('bkList');
+  const cnt=document.getElementById('bkCount');
+  const lst=document.getElementById('bkLast');
+  const sz=document.getElementById('bkSize');
+  if(cnt)cnt.innerText=bks.length;
+  if(lst)lst.innerText=bks.length?new Date(bks[0].ts).toLocaleDateString('ar-KW'):'لا يوجد';
+  if(sz)sz.innerText=Math.round(bks.reduce((s,b)=>s+b.size,0)/1024)+' KB';
+  if(!el)return;
+  if(!bks.length){el.innerHTML='<div style="font-size:.78rem;color:var(--td);text-align:center;padding:20px;">لا توجد نسخ احتياطية بعد</div>';return;}
+  el.innerHTML=bks.map(b=>`
+    <div class="bk-item">
+      <div class="bk-meta">
+        <span class="bk-date">${new Date(b.ts).toLocaleString('ar-KW')}</span>
+        <span class="bk-size">${Math.round(b.size/1024)} KB <span class="bk-tag">${b.tag}</span></span>
+      </div>
+      <div class="bk-actions">
+        <button class="btn btgh btxs bk-dl" data-id="${b.id}"><i class="fas fa-download"></i></button>
+        <button class="btn btg btxs bk-restore" data-id="${b.id}"><i class="fas fa-clock-rotate-left"></i> استعادة</button>
+        <button class="btn btxs btdr bk-del" data-id="${b.id}"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('.bk-restore').forEach(b=>b.addEventListener('click',()=>restoreBackup(Number(b.dataset.id))));
+  el.querySelectorAll('.bk-dl').forEach(b=>b.addEventListener('click',()=>{
+    const bk=getBackups().find(x=>x.id===Number(b.dataset.id));if(!bk)return;
+    const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(bk.data);
+    a.download='zagloul-backup-'+new Date(bk.ts).toISOString().slice(0,10)+'.json';a.click();
+  }));
+  el.querySelectorAll('.bk-del').forEach(b=>b.addEventListener('click',()=>{
+    const bks=getBackups().filter(x=>x.id!==Number(b.dataset.id));
+    localStorage.setItem(BK_KEY,JSON.stringify(bks));renderBackups();nt('🗑️ تم حذف النسخة');
+  }));
+}
+
+function bindBackupUI(){
+  const mb=document.getElementById('manualBackupBtn');
+  if(mb)mb.onclick=()=>{saveBackup('يدوي');nt('✅ تم حفظ النسخة الاحتياطية','suc');};
+  const ea=document.getElementById('exportAllBackupsBtn');
+  if(ea)ea.onclick=()=>{
+    const bks=getBackups();if(!bks.length){nt('لا توجد نسخ للتصدير','wrn');return;}
+    const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(JSON.stringify(bks,null,2));
+    a.download='zagloul-all-backups.json';a.click();nt('📦 تم تصدير كل النسخ','suc');
+  };
+  const ca=document.getElementById('clearBackupsBtn');
+  if(ca)ca.onclick=()=>{
+    if(!confirm('حذف كل النسخ الاحتياطية؟'))return;
+    localStorage.removeItem(BK_KEY);renderBackups();nt('🗑️ تم مسح النسخ');
+  };
+  const rc=document.getElementById('bkRestoreCnc');
+  if(rc)rc.onclick=()=>closeM('bkRestoreMod');
+  const rf=document.getElementById('bkRestoreCnf');
+  if(rf)rf.onclick=()=>{
+    const id=Number(document.getElementById('bkRestoreMod').dataset.restoreId);
+    const bks=getBackups();const bk=bks.find(b=>b.id===id);if(!bk)return;
+    saveBackup('قبل استعادة '+bk.tag);
+    try{apply(JSON.parse(bk.data));save();syncIn();render();nt('✅ تم الاستعادة بنجاح','suc');closeM('bkRestoreMod');}
+    catch(e){nt('❌ فشل الاستعادة','err');}
+  };
+  const sk=document.getElementById('setEncKeyBtn');
+  if(sk)sk.onclick=async()=>{
+    const pw=document.getElementById('encKeyInput').value;
+    const ok=await setEncryptionKey(pw);
+    const esSt=document.getElementById('encStatus');
+    if(esSt)esSt.innerText=ok?'✅ تم تعيين مفتاح التشفير — بياناتك محمية':'⚠️ لا يوجد تشفير — البيانات تُرسل كما هي';
+    const eb=document.getElementById('encBadge');
+    if(eb)eb.className=ok?'enc-badge':'enc-badge';
+    nt(ok?'🔐 تم تفعيل التشفير AES-GCM':'🔓 تم إيقاف التشفير',ok?'suc':'wrn');
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// FINANCIAL HEALTH SCORE
+// ══════════════════════════════════════════════════════
+function calcHealthScore(){
+  const w=wealth();const mi=mInc(),me=mRE();
+  const cash=S.assets.cashKWD;
+  const factors=[];
+  let total=0;
+
+  // 1. صندوق الطوارئ (25 نقطة)
+  const emCov=me>0?cash/me:0;
+  const emScore=Math.min(25,Math.round(emCov/12*25));
+  factors.push({name:'صندوق الطوارئ',score:emScore,max:25,color:emScore>18?'#4ade80':emScore>10?'#fb923c':'#f87171',note:emCov.toFixed(1)+' شهر'});
+  total+=emScore;
+
+  // 2. التدفق النقدي (25 نقطة)
+  const netFlow=mi-me;
+  const cfScore=mi>0?Math.min(25,Math.max(0,Math.round((netFlow/mi)*25))):0;
+  factors.push({name:'التدفق النقدي',score:cfScore,max:25,color:cfScore>18?'#4ade80':cfScore>10?'#fb923c':'#f87171',note:netFlow>=0?'+'+netFlow.toFixed(0)+' KWD':netFlow.toFixed(0)+' KWD'});
+  total+=cfScore;
+
+  // 3. تنويع الأصول (25 نقطة)
+  const vals=[w.ck,w.ce,w.cg,w.cr].filter(v=>v>0);
+  const divScore=vals.length>=4?25:vals.length===3?18:vals.length===2?10:5;
+  factors.push({name:'تنويع الأصول',score:divScore,max:25,color:divScore>18?'#4ade80':divScore>10?'#fb923c':'#f87171',note:vals.length+' أصناف'});
+  total+=divScore;
+
+  // 4. الاستثمار (25 نقطة)
+  const invScore=w.cg>0?Math.min(25,Math.round((w.cg/Math.max(w.tot,1))*100)):0;
+  factors.push({name:'تغطية الذهب',score:Math.min(25,invScore),max:25,color:invScore>15?'#4ade80':invScore>8?'#fb923c':'#f87171',note:((w.cg/Math.max(w.tot,1))*100).toFixed(1)+'%'});
+  total+=Math.min(25,invScore);
+
+  return{score:Math.min(100,total),factors};
+}
+
+function renderHealthScore(){
+  const{score,factors}=calcHealthScore();
+  const numEl=document.getElementById('fhsNum');
+  const arcEl=document.getElementById('fhsArc');
+  const facEl=document.getElementById('fhsFactors');
+  const advEl=document.getElementById('fhsAdvice');
+  if(!numEl)return;
+
+  // Animate score
+  const circumference=263.9;
+  const offset=circumference-(score/100)*circumference;
+  if(arcEl){
+    arcEl.style.strokeDashoffset=offset;
+    arcEl.style.stroke=score>=80?'#4ade80':score>=60?'#a3e635':score>=40?'#fb923c':'#f87171';
+  }
+  numEl.innerText=score;
+  numEl.className='fhs-num '+(score>=80?'score-excellent':score>=60?'score-good':score>=40?'score-fair':'score-poor');
+
+  if(facEl){
+    facEl.innerHTML=factors.map(f=>`
+      <div class="fhs-factor">
+        <div class="fhs-factor-name">${f.name}</div>
+        <div class="fhs-factor-bar"><div class="fhs-factor-fill" style="width:${(f.score/f.max)*100}%;background:${f.color};"></div></div>
+        <div class="fhs-factor-val" style="color:${f.color}">${f.score}/${f.max} — ${f.note}</div>
+      </div>`).join('');
+  }
+
+  if(advEl){
+    const advices=[];
+    if(score>=80)advices.push('🌟 وضعك المالي ممتاز! استمر في الادخار والتنويع.');
+    else{
+      const weakest=factors.reduce((a,b)=>(b.score/b.max)<(a.score/a.max)?b:a);
+      advices.push(`⚡ أولوية التحسين: <b>${weakest.name}</b>`);
+      if(factors[0].score<18)advices.push('💡 زد صندوق طوارئك للوصول إلى 6+ أشهر');
+      if(factors[1].score<15)advices.push('💡 حاول تقليل المصروفات أو زيادة مصادر الدخل');
+      if(factors[2].score<18)advices.push('💡 نوّع أصولك بين KWD, EGP, ذهب, وعقارات');
+      if(factors[3].score<15)advices.push('💡 ادّخر نسبة أكبر في الذهب كحماية من التضخم');
+    }
+    advEl.innerHTML=advices.join('<br>');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// PROJECTIONS
+// ══════════════════════════════════════════════════════
+let projRate=0.05;
+let projChartInst=null;
+
+function renderProjections(){
+  const w=wealth();const cur=w.tot;
+  if(!cur){document.getElementById('projGrid').innerHTML='<div style="color:var(--td);font-size:.82rem;">أدخل قيم أصولك لحساب التوقعات</div>';return;}
+  const periods=[{label:'6 أشهر',years:.5},{label:'سنة',years:1},{label:'3 سنوات',years:3},{label:'5 سنوات',years:5},{label:'10 سنوات',years:10},{label:'20 سنة',years:20}];
+  const grid=document.getElementById('projGrid');
+  if(grid){
+    grid.innerHTML=periods.map(p=>{
+      const fv=cur*Math.pow(1+projRate,p.years);
+      const pct=((fv-cur)/cur)*100;
+      return `<div class="proj-item">
+        <div class="proj-period">${p.label}</div>
+        <div class="proj-val">${fv.toFixed(1)} KWD</div>
+        <div class="proj-pct">+${pct.toFixed(1)}%</div>
+      </div>`;
+    }).join('');
+  }
+  // Projection chart
+  const labels=[];const data=[];
+  for(let y=0;y<=10;y++){labels.push('سنة '+y);data.push(parseFloat((cur*Math.pow(1+projRate,y)).toFixed(3)));}
+  const ctx=document.getElementById('projChart');if(!ctx)return;
+  if(projChartInst){projChartInst.destroy();projChartInst=null;}
+  projChartInst=new Chart(ctx.getContext('2d'),{
+    type:'line',
+    data:{labels,datasets:[{label:'التوقع',data,borderColor:'#818cf8',backgroundColor:'rgba(99,102,241,.1)',fill:true,tension:.4,pointRadius:3,borderWidth:2.5}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{ticks:{color:'#525d74',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}},
+              y:{ticks:{color:'#525d74',font:{size:9},callback:v=>v.toFixed(0)+' KWD'},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2038',borderColor:'rgba(99,102,241,.3)',borderWidth:1,titleColor:'#a5b4fc',bodyColor:'#8d96b0',callbacks:{label:c=>' '+c.parsed.y.toFixed(3)+' KWD'}}}}
+  });
+}
+
+function bindProjections(){
+  document.querySelectorAll('.proj-tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.proj-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');projRate=parseFloat(t.dataset.rate);renderProjections();
+  }));
+}
+
+// ══════════════════════════════════════════════════════
+// ASSET ALLOCATION ANALYSIS
+// ══════════════════════════════════════════════════════
+function renderAllocation(){
+  const w=wealth();const t=w.tot;if(!t)return;
+  const items=[
+    {label:'كاش KWD',val:w.ck,color:'#38bdf8'},
+    {label:'كاش EGP',val:w.ce,color:'#34d399'},
+    {label:'ذهب',val:w.cg,color:'#d4af37'},
+    {label:'عقارات',val:w.cr,color:'#fb7185'}
+  ].filter(i=>i.val>0);
+
+  const grid=document.getElementById('allocGrid');
+  const bar=document.getElementById('allocBar');
+  const legend=document.getElementById('allocLegend');
+  if(grid){
+    grid.innerHTML=items.map(i=>{
+      const pct=(i.val/t*100).toFixed(1);
+      return `<div class="anal-card">
+        <div class="anal-card-title"><span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>${i.label}</div>
+        <div style="font-size:1rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:${i.color};">${i.val.toFixed(3)} KWD</div>
+        <div style="font-size:.72rem;color:var(--td);">${pct}% من المحفظة</div>
+        <div class="fhs-factor-bar" style="margin-top:8px;"><div class="fhs-factor-fill" style="width:${pct}%;background:${i.color};"></div></div>
+      </div>`;
+    }).join('');
+  }
+  if(bar)bar.innerHTML=items.map(i=>`<div class="allocation-seg" style="width:${(i.val/t*100).toFixed(1)}%;background:${i.color};"></div>`).join('');
+  if(legend)legend.innerHTML=items.map(i=>`<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${i.color};margin-inline-end:4px;"></span>${i.label} ${(i.val/t*100).toFixed(1)}%</span>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// SMART REMINDERS
+// ══════════════════════════════════════════════════════
+function renderReminders(){
+  const el=document.getElementById('remindersContainer');if(!el)return;
+  const reminders=[];
+  const now=new Date();
+
+  // Zakat reminders
+  S.bullions.forEach(b=>{
+    const st=bStat(b);
+    if(st==='due')reminders.push({icon:'🕌',iconBg:'rgba(248,113,113,.15)',title:'زكاة مستحقة',sub:`سبيكة "${b.name||'سبيكة'}" — يرجى إخراج الزكاة`,urgent:true});
+    else if(st==='warning'){
+      const d=bDaysNext(b);
+      reminders.push({icon:'⏰',iconBg:'rgba(251,146,60,.15)',title:'زكاة قريبة',sub:`سبيكة "${b.name||'سبيكة'}" — باقي ${d} يوم`,urgent:false});
+    }
+  });
+
+  // Income reminders
+  S.incomes.forEach(i=>{
+    if(!i.dueDay)return;
+    const daysLeft=i.dueDay-now.getDate();
+    if(daysLeft>=0&&daysLeft<=3)reminders.push({icon:'💰',iconBg:'rgba(74,222,128,.15)',title:'دخل قريب',sub:`${i.subType} — يوم ${i.dueDay} من الشهر`,urgent:false});
+  });
+
+  // Goals reminders
+  S.goals.forEach(g=>{
+    const pct=g.target>0?(g.saved/g.target)*100:0;
+    if(pct>=90&&pct<100)reminders.push({icon:'🎯',iconBg:'rgba(212,175,55,.15)',title:'هدف يقترب',sub:`"${g.name}" — ${pct.toFixed(0)}% مكتمل`,urgent:false});
+  });
+
+  // Emergency fund
+  const me=mRE();
+  if(me>0){
+    const cov=S.assets.cashKWD/me;
+    if(cov<3)reminders.push({icon:'🚨',iconBg:'rgba(248,113,113,.15)',title:'صندوق طوارئ منخفض',sub:`يغطي ${cov.toFixed(1)} شهر فقط — الهدف 6-12 شهر`,urgent:true});
+  }
+
+  // Backup reminder
+  const bks=getBackups();
+  if(bks.length>0){
+    const lastBk=new Date(bks[0].ts);
+    const daysSince=Math.round((now-lastBk)/86400000);
+    if(daysSince>7)reminders.push({icon:'💾',iconBg:'rgba(56,189,248,.15)',title:'نسخ احتياطي',sub:`آخر نسخة منذ ${daysSince} أيام — يُنصح بالنسخ أسبوعياً`,urgent:false});
+  }else{
+    reminders.push({icon:'💾',iconBg:'rgba(56,189,248,.15)',title:'لا توجد نسخ احتياطية',sub:'احفظ نسخة احتياطية لحماية بياناتك',urgent:false});
+  }
+
+  if(!reminders.length){el.innerHTML='<div class="le">✅ لا توجد تذكيرات في الوقت الحالي</div>';return;}
+  el.innerHTML=reminders.map(r=>`
+    <div class="reminder-item" style="${r.urgent?'border-color:rgba(248,113,113,.25);':'' }">
+      <div class="reminder-icon" style="background:${r.iconBg};">${r.icon}</div>
+      <div class="reminder-info"><div class="reminder-title">${r.title}</div><div class="reminder-sub">${r.sub}</div></div>
+      ${r.urgent?'<span class="trend-mini trend-dn"><i class="fas fa-exclamation"></i></span>':''}
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// ENHANCED CLOUD WITH ENCRYPTION
+// ══════════════════════════════════════════════════════
+async function pushEncrypted(uid){
+  if(!sbC)return;
+  setSS('y','مزامنة...');
+  try{
+    const now=new Date().toISOString();S._at=now;
+    const payload=await encryptPayload(ser());
+    const{error}=await sbC.from(CFG.TBL).upsert({user_id:uid,payload,updated_at:now},{onConflict:'user_id'});
+    if(error)throw error;
+    setSS('g','مزامَن ☁️'+(encKey?' 🔐':''));
+  }catch(e){console.warn('push fail',e);setSS('r','خطأ رفع');}
+}
+
+async function pullDecrypted(uid){
+  if(!sbC)return null;
+  setSS('y','تحميل...');
+  try{
+    const{data,error}=await sbC.from(CFG.TBL).select('payload,updated_at').eq('user_id',uid).maybeSingle();
+    if(error)throw error;
+    setSS('g','مزامَن ☁️');
+    if(!data?.payload)return null;
+    return await decryptPayload(data.payload);
+  }catch(e){console.warn('pull fail',e);setSS('r','غير متصل');return null;}
+}
+
+// ══════════════════════════════════════════════════════
+// OVERRIDE PUSH/PULL WITH ENCRYPTED VERSIONS
+// ══════════════════════════════════════════════════════
+schedSyncEnc=function(){
+  clearTimeout(syncT);
+  syncT=setTimeout(async()=>{
+    saveBackup('تلقائي');
+    save();
+    if(sbC)await pushEncrypted(UID);
+    else save();
+  },1500);
+};
+
+// ══════════════════════════════════════════════════════
+// RENDER ALL NEW SECTIONS
+// ══════════════════════════════════════════════════════
+function renderAdvanced(){
+  try{renderHealthScore();}catch(e){console.warn("healthScore",e);}
+  try{renderProjections();}catch(e){console.warn("proj",e);}
+  try{renderAllocation();}catch(e){console.warn("alloc",e);}
+  try{renderReminders();}catch(e){console.warn("remind",e);}
+  try{renderBackups();}catch(e){console.warn("bk",e);}
+}
+
+// ══════════════════════════════════════════════════════
+// BIND ADVANCED UI
+// ══════════════════════════════════════════════════════
+function bindAdvanced(){
+  bindProjections();
+  bindBackupUI();
+  // Update nav for new sections
+  const lks=document.querySelectorAll('#bnav a');
+  const secs=Array.from(lks).map(a=>document.getElementById(a.dataset.t)).filter(Boolean);
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{
+      if(e.isIntersecting){lks.forEach(l=>l.classList.remove('ac'));const ac=document.querySelector('#bnav a[data-t="'+e.target.id+'"]');if(ac)ac.classList.add('ac');}
+    }),{rootMargin:'-38% 0px -48% 0px'});
+    secs.forEach(s=>io.observe(s));
+  }
+}
+
+
+
+// ══════════════════════════════════════════════════════
+// EXCEL / CSV IMPORT ENGINE
+// ══════════════════════════════════════════════════════
+const XL = {
+  workbook: null,
+  sheets: [],
+  activeSheet: 0,
+  rawData: [],     // array of row objects from selected sheet
+  headers: [],     // column headers
+  mapping: {},     // { zagloulField: excelColumn }
+  parsed: [],      // parsed records ready to import
+  currentStep: 1,
+
+  // Zagloul importable fields
+  FIELDS: [
+    { key: 'ignore',        label: 'تجاهل' },
+    { key: 'name',          label: 'الاسم / المصدر' },
+    { key: 'amount',        label: 'المبلغ (KWD)' },
+    { key: 'type',          label: 'النوع (دخل/مصروف/ذهب/هدف/سلفة/دين)' },
+    { key: 'date',          label: 'التاريخ' },
+    { key: 'notes',         label: 'ملاحظات' },
+    { key: 'recurring',     label: 'متكرر (نعم/لا)' },
+    { key: 'category',      label: 'التصنيف (ثابت/متغير)' },
+    { key: 'karat',         label: 'عيار الذهب (18/21/22/24)' },
+    { key: 'weight',        label: 'وزن الذهب (جرام)' },
+    { key: 'egpAmount',     label: 'المبلغ بالجنيه المصري' },
+    { key: 'dueDay',        label: 'يوم الاستحقاق (1-31)' },
+  ],
+
+  // Auto-detect column mapping from header names
+  autoDetect(headers) {
+    const map = {};
+    const rules = {
+      name:      [/اسم|name|مصدر|source|وصف|desc/i],
+      amount:    [/مبلغ|amount|قيمة|value|sum|كمية/i],
+      type:      [/نوع|type|kind|صنف|category|قسم/i],
+      date:      [/تاريخ|date|يوم|day|time/i],
+      notes:     [/ملاحظ|note|تعليق|comment|وصف/i],
+      recurring: [/متكرر|recurring|repeat|شهري/i],
+      category:  [/تصنيف|class|ثابت|fixed|متغير/i],
+      karat:     [/عيار|karat|carat/i],
+      weight:    [/وزن|weight|جرام|gram/i],
+      egpAmount: [/جنيه|egp|مصري/i],
+      dueDay:    [/يوم الاستحقاق|due.*day|dueday/i],
+    };
+    headers.forEach(h => {
+      let matched = false;
+      for (const [field, patterns] of Object.entries(rules)) {
+        if (!matched && patterns.some(rx => rx.test(h))) {
+          if (!Object.values(map).includes(h)) { map[field] = h; matched = true; }
+        }
+      }
+    });
+    return map;
+  },
+
+  // Parse a single row into a structured record
+  parseRow(row, mapping) {
+    const get = field => {
+      const col = mapping[field];
+      return col ? String(row[col] ?? '').trim() : '';
+    };
+    const name     = get('name');
+    const amtRaw   = get('amount');
+    const typeRaw  = get('type').toLowerCase();
+    const dateRaw  = get('date');
+    const notes    = get('notes');
+    const recRaw   = get('recurring').toLowerCase();
+    const catRaw   = get('category').toLowerCase();
+    const karat    = parseInt(get('karat')) || 21;
+    const weight   = parseFloat(get('weight')) || 0;
+    const egp      = parseFloat(get('egpAmount')) || 0;
+    const dueDay   = parseInt(get('dueDay')) || null;
+    const amount   = parseFloat(amtRaw.replace(/[^0-9.]/g,'')) || 0;
+    const isRecurring = /نعم|yes|1|true|✓/.test(recRaw);
+    const isFixed  = /ثابت|fixed/.test(catRaw);
+
+    // Detect type
+    let detectedType = 'expense';
+    if (/دخل|income|راتب|salary|إيجار.*دخل/.test(typeRaw)) detectedType = 'income';
+    else if (/مصروف|expense|نفقة|تكلفة/.test(typeRaw)) detectedType = 'expense';
+    else if (/ذهب|gold|سبيكة|bullion/.test(typeRaw)) detectedType = 'gold';
+    else if (/هدف|goal|مدخر/.test(typeRaw)) detectedType = 'goal';
+    else if (/سلف|credit|قرض.*لي/.test(typeRaw)) detectedType = 'credit';
+    else if (/دين|debt|قرض.*علي/.test(typeRaw)) detectedType = 'debt';
+
+    // Parse date
+    let parsedDate = null;
+    if (dateRaw) {
+      const d = new Date(dateRaw);
+      if (!isNaN(d)) parsedDate = d.toISOString().slice(0,10);
+      else {
+        // try DD/MM/YYYY
+        const m = dateRaw.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+        if (m) { parsedDate = new Date(`${m[3].length===2?'20'+m[3]:m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`).toISOString().slice(0,10); }
+      }
+    }
+
+    return { name, amount, egp, detectedType, parsedDate, notes, isRecurring, isFixed, karat, weight, dueDay, _raw: row };
+  },
+
+  // Import parsed records into state
+  importRecords(records, mode) {
+    const results = { income:0, expense:0, gold:0, goal:0, credit:0, debt:0, skipped:0 };
+    if (mode === 'replace') {
+      S.incomes = []; S.expenses = []; S.goals = [];
+      S.credits = []; S.debts = []; S.bullions = [];
+    }
+    records.forEach(r => {
+      if (!r.name && !r.amount && !r.weight) { results.skipped++; return; }
+      const id = Date.now() + Math.floor(Math.random()*100000);
+      switch(r.detectedType) {
+        case 'income':
+          S.incomes.push({ id, typeCategory:'Positive', subType:r.name||'دخل مستورد', amount:r.amount, dueDay:r.dueDay, lastPM:null });
+          results.income++; break;
+        case 'expense':
+          S.expenses.push({ id, name:r.name||'مصروف مستورد', amount:r.amount, isFixed:r.isFixed, recurring:r.isRecurring });
+          if (!r.isRecurring && r.amount > 0) S.assets.cashKWD = Math.max(0, S.assets.cashKWD - r.amount);
+          results.expense++; break;
+        case 'gold':
+          S.bullions.push({ id, name:r.name||'سبيكة مستوردة', weight:r.weight||r.amount, karat:r.karat||21, purchaseDate:r.parsedDate||new Date().toISOString().slice(0,10), notes:r.notes, zakatPayments:[] });
+          results.gold++; break;
+        case 'goal':
+          S.goals.push({ id, name:r.name||'هدف مستورد', target:r.amount, saved:0 });
+          results.goal++; break;
+        case 'credit':
+          S.credits.push({ id, name:r.name||'سلفة مستوردة', amount:r.amount, note:r.notes });
+          results.credit++; break;
+        case 'debt':
+          S.debts.push({ id, name:r.name||'دين مستورد', amount:r.amount, note:r.notes });
+          results.debt++; break;
+        default: results.skipped++;
+      }
+    });
+    return results;
+  }
+};
+
+// ── Step navigation helpers ──
+function xlGoStep(n) {
+  XL.currentStep = n;
+  document.querySelectorAll('.xl-import-step').forEach((el, i) => {
+    el.classList.toggle('active', i + 1 === n);
+  });
+  for (let i = 1; i <= 4; i++) {
+    const ps = document.getElementById('xps' + i);
+    const pl = document.getElementById('xpl' + (i-1));
+    if (ps) { ps.className = 'xl-ps' + (i < n ? ' done' : i === n ? ' current' : ''); }
+    if (pl) { pl.className = 'xl-ps-line' + (i <= n ? ' done' : ''); }
+  }
+}
+
+// ── File parsing ──
+function xlParseFile(file) {
+  const reader = new FileReader();
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      XL.workbook = XLSX.read(data, { type: 'array', cellDates: true });
+      XL.sheets = XL.workbook.SheetNames;
+      xlLoadSheet(0);
+      xlGoStep(2);
+      nt(`✅ تم قراءة "${file.name}" — ${XL.sheets.length} ورقة`, 'suc');
+    } catch(err) {
+      nt('❌ خطأ في قراءة الملف: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function xlLoadSheet(idx) {
+  XL.activeSheet = idx;
+  const ws = XL.workbook.Sheets[XL.sheets[idx]];
+  const json = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+  XL.rawData = json;
+  XL.headers = json.length > 0 ? Object.keys(json[0]) : [];
+  XL.mapping = XL.autoDetect(XL.headers);
+
+  // Sheet tabs
+  const tabsEl = document.getElementById('xlSheetTabs');
+  if (tabsEl) {
+    tabsEl.innerHTML = XL.sheets.map((s, i) =>
+      `<button class="xl-sheet-tab${i===idx?' active':''}" data-i="${i}">${H(s)} (${XLSX.utils.sheet_to_json(XL.workbook.Sheets[s],{defval:''}).length} صف)</button>`
+    ).join('');
+    tabsEl.querySelectorAll('.xl-sheet-tab').forEach(b =>
+      b.addEventListener('click', () => xlLoadSheet(parseInt(b.dataset.i)))
+    );
+  }
+
+  // Stats
+  const statEl = document.getElementById('xlStatBar');
+  if (statEl) statEl.innerHTML = `
+    <div class="xl-stat"><b>${XL.rawData.length}</b>صف</div>
+    <div class="xl-stat"><b>${XL.headers.length}</b>عمود</div>
+    <div class="xl-stat"><b>${Object.keys(XL.mapping).length}</b>حقل مكتشف</div>
+  `;
+
+  // Mapping grid
+  const mapEl = document.getElementById('xlMapGrid');
+  if (mapEl) {
+    mapEl.innerHTML = XL.FIELDS.slice(1).map(f => `
+      <div class="xl-map-row">
+        <div class="xl-map-lbl">${f.label}</div>
+        <select class="xl-map-sel" data-field="${f.key}">
+          <option value="">— تجاهل —</option>
+          ${XL.headers.map(h => `<option value="${H(h)}" ${XL.mapping[f.key]===h?'selected':''}>${H(h)}</option>`).join('')}
+        </select>
+      </div>`).join('');
+    mapEl.querySelectorAll('.xl-map-sel').forEach(sel =>
+      sel.addEventListener('change', () => {
+        const field = sel.dataset.field;
+        if (sel.value) XL.mapping[field] = sel.value;
+        else delete XL.mapping[field];
+      })
+    );
+  }
+}
+
+// ── Build preview ──
+function xlBuildPreview() {
+  XL.parsed = XL.rawData.map(row => XL.parseRow(row, XL.mapping)).filter(r => r.name || r.amount || r.weight);
+  const counts = { income:0, expense:0, gold:0, goal:0, credit:0, debt:0 };
+  XL.parsed.forEach(r => { if(counts[r.detectedType]!==undefined) counts[r.detectedType]++; });
+
+  const statsEl = document.getElementById('xlPreviewStats');
+  if (statsEl) statsEl.innerHTML = [
+    ['دخل', counts.income, 'var(--grn)'],
+    ['مصروف', counts.expense, 'var(--red)'],
+    ['ذهب', counts.gold, 'var(--glb)'],
+    ['هدف', counts.goal, 'var(--kwd)'],
+    ['سلفة', counts.credit, '#a5b4fc'],
+    ['دين', counts.debt, 'var(--est)'],
+  ].filter(([,c])=>c>0).map(([l,c,col])=>`<div class="xl-stat"><b style="color:${col}">${c}</b>${l}</div>`).join('');
+
+  const typeLabels = { income:'دخل', expense:'مصروف', gold:'ذهب', goal:'هدف', credit:'سلفة', debt:'دين' };
+  const typeColors = { income:'var(--grn)', expense:'var(--red)', gold:'var(--glb)', goal:'var(--kwd)', credit:'#a5b4fc', debt:'var(--est)' };
+  const prevEl = document.getElementById('xlPreviewTable');
+  if (prevEl) prevEl.innerHTML = `
+    <table class="xl-table">
+      <thead><tr><th>الاسم</th><th>المبلغ (KWD)</th><th>النوع</th><th>التاريخ</th><th>ملاحظات</th></tr></thead>
+      <tbody>${XL.parsed.slice(0,50).map(r=>`
+        <tr>
+          <td>${H(r.name||'—')}</td>
+          <td style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">${r.amount?r.amount.toFixed(2):r.weight?r.weight+'جم':'—'}</td>
+          <td><span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:10px;background:${typeColors[r.detectedType]}22;color:${typeColors[r.detectedType]}">${typeLabels[r.detectedType]||r.detectedType}</span></td>
+          <td>${r.parsedDate||'—'}</td>
+          <td style="color:var(--td);font-size:.7rem;">${H(r.notes||'')}</td>
+        </tr>`).join('')}
+      ${XL.parsed.length>50?`<tr><td colspan="5" style="text-align:center;color:var(--td);font-size:.72rem;padding:10px;">... و${XL.parsed.length-50} سجل آخر</td></tr>`:''}
+      </tbody>
+    </table>`;
+}
+
+// ── Download template ──
+function xlDownloadTemplate() {
+  const wb = XLSX.utils.book_new();
+  const data = [
+    ['الاسم / المصدر', 'المبلغ', 'النوع', 'التاريخ', 'ملاحظات', 'متكرر', 'التصنيف', 'عيار الذهب', 'وزن الذهب (جرام)', 'يوم الاستحقاق'],
+    ['راتب', 800, 'دخل', '2024-01-01', '', 'نعم', '', '', '', 1],
+    ['إيجار', 120, 'مصروف', '2024-01-05', 'شقة', 'نعم', 'ثابت', '', '', ''],
+    ['تسوق', 50, 'مصروف', '2024-01-10', '', 'لا', 'متغير', '', '', ''],
+    ['سبيكة ذهب', '', 'ذهب', '2024-01-15', 'ادخار', '', '', 21, 100, ''],
+    ['شراء سيارة', 5000, 'هدف', '', '', '', '', '', '', ''],
+    ['أحمد', 200, 'سلفة', '2024-01-20', 'سلفة صديق', '', '', '', '', ''],
+    ['بنك', 1000, 'دين', '2024-01-01', 'قرض شخصي', '', '', '', '', ''],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = Array(10).fill({ wch: 20 });
+  XLSX.utils.book_append_sheet(wb, ws, 'بيانات زغلول');
+  XLSX.writeFile(wb, 'zagloul-template.xlsx');
+  nt('📥 تم تحميل القالب', 'suc');
+}
+
+// ── Sample data (for demo / testing) ──
+function xlUseSampleData() {
+  const sampleData = [
+    {'الاسم / المصدر':'راتب','المبلغ':800,'النوع':'دخل','التاريخ':'2024-01-01','ملاحظات':'شهري','متكرر':'نعم','التصنيف':'','عيار الذهب':'','وزن الذهب (جرام)':'','يوم الاستحقاق':1},
+    {'الاسم / المصدر':'إيجار','المبلغ':150,'النوع':'مصروف','التاريخ':'2024-01-05','ملاحظات':'شقة','متكرر':'نعم','التصنيف':'ثابت','عيار الذهب':'','وزن الذهب (جرام)':'','يوم الاستحقاق':''},
+    {'الاسم / المصدر':'تسوق','المبلغ':45,'النوع':'مصروف','التاريخ':'2024-01-12','ملاحظات':'','متكرر':'لا','التصنيف':'متغير','عيار الذهب':'','وزن الذهب (جرام)':'','يوم الاستحقاق':''},
+    {'الاسم / المصدر':'سبيكة ذهب','المبلغ':'','النوع':'ذهب','التاريخ':'2023-06-15','ملاحظات':'ادخار','متكرر':'','التصنيف':'','عيار الذهب':21,'وزن الذهب (جرام)':50,'يوم الاستحقاق':''},
+    {'الاسم / المصدر':'هدف حج','المبلغ':3000,'النوع':'هدف','التاريخ':'','ملاحظات':'','متكرر':'','التصنيف':'','عيار الذهب':'','وزن الذهب (جرام)':'','يوم الاستحقاق':''},
+  ];
+  XL.rawData = sampleData;
+  XL.headers = Object.keys(sampleData[0]);
+  XL.sheets = ['بيانات تجريبية'];
+  XL.workbook = null;
+  XL.mapping = XL.autoDetect(XL.headers);
+  xlLoadSheet(0);
+  xlGoStep(2);
+  nt('📊 تم تحميل بيانات تجريبية', 'suc');
+}
+
+// ── BIND Excel UI ──
+function bindExcelImport() {
+  // Open modal
+  const openBtn = document.getElementById('xlImportBtn');
+  if (openBtn) openBtn.onclick = () => {
+    XL.currentStep = 1;
+    XL.workbook = null;XL.rawData = [];XL.headers = [];XL.mapping = {};XL.parsed = [];
+    xlGoStep(1);
+    const drop = document.getElementById('xlDrop');
+    if (drop) {
+      drop.innerHTML = `<i class="fas fa-file-excel" style="color:#22c55e;"></i><div class="xl-title">اسحب ملف Excel أو CSV هنا</div><div class="xl-sub">أو اضغط لاختيار الملف · يدعم .xlsx .xls .csv</div><input type="file" id="xlFileInput" accept=".xlsx,.xls,.csv" hidden>`;
+      drop.onclick = () => document.getElementById('xlFileInput')?.click();
+      const newInp = drop.querySelector('#xlFileInput');
+      if (newInp) newInp.onchange = e => { const f = e.target.files[0]; if(f) xlParseFile(f); };
+      // Drag & drop
+      drop.ondragover = e => { e.preventDefault(); drop.classList.add('drag-over'); };
+      drop.ondragleave = () => drop.classList.remove('drag-over');
+      drop.ondrop = e => { e.preventDefault(); drop.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(f)xlParseFile(f); };
+    }
+    openM('xlMod');
+  };
+
+  const xlCncBtn=document.getElementById('xlCnc');if(xlCncBtn)xlCncBtn.addEventListener('click', () => closeM('xlMod'));
+  document.getElementById('xlDownloadTemplate')?.addEventListener('click', xlDownloadTemplate);
+  document.getElementById('xlSampleData')?.addEventListener('click', xlUseSampleData);
+
+  // Step 2 → 3
+  document.getElementById('xlNext2')?.addEventListener('click', () => {
+    if (!XL.rawData.length) { nt('❌ لا توجد بيانات لمعاينتها', 'err'); return; }
+    xlBuildPreview();
+    xlGoStep(3);
+  });
+  document.getElementById('xlBack2')?.addEventListener('click', () => xlGoStep(1));
+
+  // Step 3 → 4 (import)
+  document.getElementById('xlNext3')?.addEventListener('click', () => {
+    if (!XL.parsed.length) { nt('❌ لا توجد سجلات قابلة للاستيراد', 'err'); return; }
+    const mode = document.querySelector('input[name="xlMode"]:checked')?.value || 'append';
+    // Backup before import
+    saveBackup('قبل استيراد Excel');
+    const results = XL.importRecords(XL.parsed, mode);
+    syncIn(); render();
+    // Show result
+    const typeLabels = { income:'دخل', expense:'مصروف', gold:'ذهب', goal:'هدف', credit:'سلفة', debt:'دين' };
+    const typeColors = { income:'var(--grn)', expense:'var(--red)', gold:'var(--glb)', goal:'var(--kwd)', credit:'#a5b4fc', debt:'var(--est)' };
+    const total = Object.values(results).filter((_,i)=>i<6).reduce((a,b)=>a+b,0);
+    const el4 = document.getElementById('xlResultIcon'); if(el4) el4.innerText = total>0?'✅':'⚠️';
+    const el5 = document.getElementById('xlResultTitle'); if(el5) el5.innerText = total>0?`تم استيراد ${total} سجل بنجاح!`:'لم يتم استيراد أي سجل';
+    const el6 = document.getElementById('xlResultSub'); if(el6) el6.innerText = `وضع: ${mode==='append'?'إضافة':'استبدال'} • نسخة احتياطية تلقائية محفوظة`;
+    const el7 = document.getElementById('xlResultList');
+    if (el7) el7.innerHTML = Object.entries(results).map(([type,count]) => {
+      if(!count) return '';
+      const label = type==='skipped'?'تجاهل':typeLabels[type]||type;
+      const col = type==='skipped'?'var(--td)':(typeColors[type]||'var(--tm)');
+      const bg = type==='skipped'?'rgba(255,255,255,.04)':(col.replace(')',', .12)').replace('var(','rgba(').includes('rgba')?col.replace(')',', .12)'):`rgba(0,0,0,.1)`);
+      return `<div class="xl-result-item">
+        <div class="xl-result-icon" style="background:${col}22;color:${col}">${type==='skipped'?'—':'✓'}</div>
+        <span>${label}: <b style="font-family:'Plus Jakarta Sans',sans-serif;">${count}</b> سجل</span>
+      </div>`;
+    }).join('');
+    xlGoStep(4);
+    nt(`✅ تم استيراد ${total} سجل من Excel`, 'suc');
+  });
+  document.getElementById('xlBack3')?.addEventListener('click', () => xlGoStep(2));
+  document.getElementById('xlDone')?.addEventListener('click', () => closeM('xlMod'));
+  document.getElementById('xlImportAnother')?.addEventListener('click', () => {
+    XL.workbook=null;XL.rawData=[];XL.parsed=[];
+    xlGoStep(1);
+  });
+}
+
+
+
+// ══════════════════════════════════════════════════════
+// EXCEL EXPORT ENGINE — Full Multi-Sheet Export
+// ══════════════════════════════════════════════════════
+function exportToExcel() {
+  try {
+    const wb = XLSX.utils.book_new();
+    const w = wealth();
+    const now = new Date();
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('ar-KW', {timeZone:'Asia/Kuwait'}) : '';
+    const fmtNum  = n => typeof n === 'number' ? parseFloat(n.toFixed(3)) : 0;
+
+    // ── Sheet 1: Summary / ملخص الثروة ──
+    const summaryData = [
+      ['ملخص الثروة — زغلول v12', '', '', ''],
+      ['تاريخ التصدير', now.toLocaleString('ar-KW', {timeZone:'Asia/Kuwait'}), '', ''],
+      ['', '', '', ''],
+      ['البند', 'القيمة (KWD)', 'النسبة %', 'ملاحظات'],
+      ['كاش بالدينار الكويتي', fmtNum(w.ck), fmtNum(w.tot ? (w.ck/w.tot)*100 : 0), ''],
+      ['كاش بالجنيه المصري (محوّل)', fmtNum(w.ce), fmtNum(w.tot ? (w.ce/w.tot)*100 : 0), `سعر الصرف: ${S.rates.egp.toFixed(3)}`],
+      ['الذهب (محوّل)', fmtNum(w.cg), fmtNum(w.tot ? (w.cg/w.tot)*100 : 0), `سعر الجرام: ${S.rates.xau.toFixed(3)} KWD`],
+      ['العقارات (محوّلة)', fmtNum(w.cr), fmtNum(w.tot ? (w.cr/w.tot)*100 : 0), ''],
+      ['', '', '', ''],
+      ['صافي الثروة الكلية', fmtNum(w.tot), 100, ''],
+      ['الثروة الابتدائية', fmtNum(S.startW), '', ''],
+      ['الربح / الخسارة', fmtNum(w.tot - S.startW), fmtNum(S.startW ? ((w.tot-S.startW)/S.startW)*100 : 0), '%'],
+      ['', '', '', ''],
+      ['معدل GWB', fmtNum(gwbRate()), '', 'السلة العالمية المرجحة'],
+      ['الثروة بوحدة GWB', fmtNum(gwbRate() > 0 ? w.tot / gwbRate() : 0), '', ''],
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary['!cols'] = [{wch:30},{wch:20},{wch:15},{wch:30}];
+    wsSummary['!merges'] = [{s:{r:0,c:0},e:{r:0,c:3}}];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'ملخص الثروة');
+
+    // ── Sheet 2: Income ──
+    const incomeRows = [
+      ['#', 'المصدر', 'النوع', 'المبلغ (KWD)', 'يوم الاستحقاق', 'آخر معالجة'],
+      ...S.incomes.map((inc, i) => [
+        i+1,
+        inc.subType || '',
+        {Positive:'نشط',Passive:'سلبي',Investment:'استثماري'}[inc.typeCategory] || inc.typeCategory,
+        fmtNum(inc.amount),
+        inc.dueDay || '',
+        inc.lastPM || ''
+      ])
+    ];
+    if (S.incomes.length) {
+      incomeRows.push(['', '', 'الإجمالي الشهري', fmtNum(S.incomes.reduce((s,i)=>s+i.amount,0)), '', '']);
+    }
+    const wsIncome = XLSX.utils.aoa_to_sheet(incomeRows);
+    wsIncome['!cols'] = [{wch:5},{wch:25},{wch:15},{wch:15},{wch:15},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, wsIncome, 'الدخل');
+
+    // ── Sheet 3: Expenses ──
+    const expRows = [
+      ['#', 'اسم المصروف', 'التصنيف', 'متكرر', 'المبلغ (KWD)'],
+      ...S.expenses.map((e, i) => [
+        i+1, e.name||'', e.isFixed?'ثابت':'متغير', e.recurring?'نعم':'لا', fmtNum(e.amount)
+      ])
+    ];
+    const fixedTotal  = S.expenses.filter(e=>e.isFixed).reduce((s,e)=>s+e.amount,0);
+    const varTotal    = S.expenses.filter(e=>!e.isFixed).reduce((s,e)=>s+e.amount,0);
+    expRows.push(['','','ثابت — الإجمالي','',fmtNum(fixedTotal)]);
+    expRows.push(['','','متغير — الإجمالي','',fmtNum(varTotal)]);
+    expRows.push(['','','الإجمالي الكلي','',fmtNum(fixedTotal+varTotal)]);
+    const wsExp = XLSX.utils.aoa_to_sheet(expRows);
+    wsExp['!cols'] = [{wch:5},{wch:25},{wch:12},{wch:10},{wch:15}];
+    XLSX.utils.book_append_sheet(wb, wsExp, 'المصروفات');
+
+    // ── Sheet 4: Goals ──
+    const goalRows = [
+      ['#', 'اسم الهدف', 'المستهدف (KWD)', 'المحفوظ (KWD)', 'الباقي (KWD)', 'نسبة الإنجاز %'],
+      ...S.goals.map((g, i) => [
+        i+1, g.name||'', fmtNum(g.target), fmtNum(g.saved),
+        fmtNum(Math.max(0, g.target - g.saved)),
+        fmtNum(g.target > 0 ? Math.min(100,(g.saved/g.target)*100) : 0)
+      ])
+    ];
+    const wsGoals = XLSX.utils.aoa_to_sheet(goalRows);
+    wsGoals['!cols'] = [{wch:5},{wch:25},{wch:18},{wch:18},{wch:15},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, wsGoals, 'الأهداف');
+
+    // ── Sheet 5: Gold / Zakat ──
+    const gp = S.zakatGP || S.rates.xau;
+    const now2 = new Date(); now2.setHours(0,0,0,0);
+    const goldRows = [
+      ['#', 'اسم السبيكة', 'الوزن (جرام)', 'العيار', 'تاريخ الشراء', 'أول وجوب',
+       'القيمة الحالية (KWD)', 'الزكاة المستحقة (KWD)', 'الحالة', 'ملاحظات'],
+      ...S.bullions.map((b, i) => {
+        const val  = b.weight * gp * ((b.karat||24)/24);
+        const due1 = b.purchaseDate ? addHY(new Date(b.purchaseDate+'T00:00:00')) : null;
+        const st   = bStat(b);
+        const stLabel = {below:'تحت النصاب', ok:'آمنة', warning:'تقترب', due:'مستحقة'}[st] || st;
+        const cycles = genCycles(b);
+        const zakatDue = cycles.filter(c=>c.dd<=now2&&!(getPR(b,c.yr)?.pd)&&!(getPR(b,c.yr)?.ds))
+                               .reduce((s)=>s+val*0.025, 0);
+        return [
+          i+1, b.name||'سبيكة', fmtNum(b.weight), `عيار ${b.karat}`,
+          fmtDate(b.purchaseDate), fmtDate(due1),
+          fmtNum(val), fmtNum(zakatDue), stLabel, b.notes||''
+        ];
+      })
+    ];
+    goldRows.push(['','الإجمالي',
+      fmtNum(S.bullions.reduce((s,b)=>s+b.weight,0)), '',
+      '','', fmtNum(S.bullions.reduce((s,b)=>s+b.weight*gp*((b.karat||24)/24),0)),
+      '', '', ''
+    ]);
+    const wsGold = XLSX.utils.aoa_to_sheet(goldRows);
+    wsGold['!cols'] = [{wch:5},{wch:20},{wch:14},{wch:10},{wch:16},{wch:16},{wch:20},{wch:22},{wch:12},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, wsGold, 'الذهب والزكاة');
+
+    // ── Sheet 6: Credits & Debts ──
+    const cdRows = [
+      ['#', 'الاسم / الجهة', 'النوع', 'المبلغ (KWD)', 'ملاحظات'],
+      ...S.credits.map((c,i) => [i+1, c.name||'', 'سلفة مستحقة', fmtNum(c.amount), c.note||'']),
+      ...S.debts.map((d,i)   => [S.credits.length+i+1, d.name||'', 'دين مستحق', fmtNum(d.amount), d.note||''])
+    ];
+    cdRows.push(['','','إجمالي السلف', fmtNum(S.credits.reduce((s,c)=>s+c.amount,0)),'']);
+    cdRows.push(['','','إجمالي الديون',fmtNum(S.debts.reduce((s,d)=>s+d.amount,0)),'']);
+    cdRows.push(['','','الصافي (لي − علي)',
+      fmtNum(S.credits.reduce((s,c)=>s+c.amount,0)-S.debts.reduce((s,d)=>s+d.amount,0)),'']);
+    const wsCd = XLSX.utils.aoa_to_sheet(cdRows);
+    wsCd['!cols'] = [{wch:5},{wch:25},{wch:18},{wch:15},{wch:30}];
+    XLSX.utils.book_append_sheet(wb, wsCd, 'السلف والديون');
+
+    // ── Sheet 7: Wealth History ──
+    const histRows = [
+      ['#', 'التاريخ والوقت', 'الثروة (KWD)', 'التغير (KWD)', 'التغير %'],
+      ...S.wealthHistory.slice(-500).map((p, i, arr) => {
+        const prev = i > 0 ? arr[i-1].v : p.v;
+        const chg  = p.v - prev;
+        const pct  = prev > 0 ? (chg/prev)*100 : 0;
+        return [i+1, new Date(p.ts).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'}),
+          fmtNum(p.v), fmtNum(chg), fmtNum(pct)];
+      })
+    ];
+    const wsHist = XLSX.utils.aoa_to_sheet(histRows);
+    wsHist['!cols'] = [{wch:5},{wch:24},{wch:18},{wch:15},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, wsHist, 'تاريخ الثروة');
+
+    // ── Sheet 8: Financial Analytics ──
+    const {score, factors} = calcHealthScore();
+    const mi = mInc(), me = mRE(), net = mi - me;
+    const emergCov = me > 0 ? S.assets.cashKWD / me : 0;
+    const analyticsData = [
+      ['مؤشر', 'القيمة', 'التقييم'],
+      ['النقاط المالية الصحية', score+' / 100', score>=80?'ممتاز':score>=60?'جيد':score>=40?'متوسط':'يحتاج تحسين'],
+      ['صندوق الطوارئ', emergCov.toFixed(1)+' شهر', emergCov>=6?'✅':'⚠️'],
+      ['الدخل الشهري الكلي', fmtNum(mi)+' KWD', ''],
+      ['المصروفات المتكررة', fmtNum(me)+' KWD', ''],
+      ['صافي التدفق النقدي', fmtNum(net)+' KWD', net>=0?'إيجابي':'سالب'],
+      ['نسبة الادخار', mi>0?((net/mi)*100).toFixed(1)+'%':'0%', net/mi>=0.2?'ممتاز':net/mi>=0.1?'جيد':'منخفض'],
+      ['نسبة الذهب من الثروة', w.tot>0?((w.cg/w.tot)*100).toFixed(1)+'%':'0%', ''],
+      ['إجمالي السلف المستحقة', fmtNum(S.credits.reduce((s,c)=>s+c.amount,0))+' KWD', ''],
+      ['إجمالي الديون المستحقة', fmtNum(S.debts.reduce((s,d)=>s+d.amount,0))+' KWD', ''],
+      ['عدد الأهداف المالية', S.goals.length, ''],
+      ['أهداف مكتملة 100%', S.goals.filter(g=>g.saved>=g.target).length, ''],
+      ['عدد السبائك', S.bullions.length, ''],
+      ['سبائك مستحقة الزكاة', S.bullions.filter(b=>bStat(b)==='due').length, ''],
+    ];
+    factors.forEach(f => analyticsData.push([f.name, `${f.score}/${f.max}`, f.note]));
+    const wsAnal = XLSX.utils.aoa_to_sheet(analyticsData);
+    wsAnal['!cols'] = [{wch:28},{wch:18},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, wsAnal, 'التحليل المالي');
+
+    // ── Write file ──
+    const fname = `zagloul-export-${now.toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, fname);
+    nt(`📊 تم تصدير ${fname} — 8 أوراق عمل`, 'suc');
+  } catch(e) {
+    console.error('Excel export failed:', e);
+    nt('❌ فشل التصدير: ' + e.message, 'err');
+  }
+}
+
 document.addEventListener('DOMContentLoaded',init);
 })();
 </script>
+
+<!-- ══════════ EXCEL IMPORT MODAL ══════════ -->
+<div id="xlMod" class="modal">
+<div class="mc" style="max-width:680px;max-height:92vh;">
+  <h3><i class="fas fa-file-excel" style="color:#22c55e;"></i> استيراد من Excel / CSV</h3>
+
+  <!-- Step progress -->
+  <div class="xl-progress-steps">
+    <div class="xl-ps current" id="xps1">1</div>
+    <div class="xl-ps-line" id="xpl1"></div>
+    <div class="xl-ps" id="xps2">2</div>
+    <div class="xl-ps-line" id="xpl2"></div>
+    <div class="xl-ps" id="xps3">3</div>
+    <div class="xl-ps-line" id="xpl3"></div>
+    <div class="xl-ps" id="xps4">4</div>
+    <span style="font-size:.72rem;color:var(--td);margin-right:8px;">رفع الملف ← تعيين الأعمدة ← معاينة ← استيراد</span>
+  </div>
+
+  <!-- STEP 1: Upload -->
+  <div class="xl-import-step active" id="xlStep1">
+    <div class="xl-drop" id="xlDrop">
+      <i class="fas fa-file-excel" style="color:#22c55e;"></i>
+      <div class="xl-title">اسحب ملف Excel أو CSV هنا</div>
+      <div class="xl-sub">أو اضغط لاختيار الملف · يدعم .xlsx .xls .csv</div>
+      <input type="file" id="xlFileInput" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--tm);margin-bottom:8px;">📋 مثال على تنسيق Excel المقبول:</div>
+      <div class="xl-preview">
+        <table class="xl-table">
+          <thead><tr><th>الاسم / المصدر</th><th>المبلغ</th><th>النوع</th><th>التاريخ</th><th>ملاحظات</th></tr></thead>
+          <tbody>
+            <tr><td>راتب</td><td>800</td><td>دخل</td><td>2024-01-01</td><td>شهري</td></tr>
+            <tr><td>إيجار شقة</td><td>150</td><td>مصروف</td><td>2024-01-05</td><td>ثابت</td></tr>
+            <tr><td>سبيكة 100 جرام</td><td>100</td><td>ذهب</td><td>2024-01-10</td><td>عيار 21</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btg btsm" id="xlDownloadTemplate"><i class="fas fa-download"></i> تحميل قالب Excel</button>
+        <button class="btn btgh btsm" id="xlSampleData"><i class="fas fa-table"></i> استخدام بيانات تجريبية</button>
+      </div>
+    </div>
+    <div class="xl-step-nav">
+      <button class="btn btgh" id="xlCnc">إغلاق</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Map columns -->
+  <div class="xl-import-step" id="xlStep2">
+    <div style="font-size:.82rem;color:var(--tm);margin-bottom:10px;">تعيين أعمدة الملف إلى حقول زغلول:</div>
+    <div class="xl-sheet-tabs" id="xlSheetTabs"></div>
+    <div class="xl-stat-bar" id="xlStatBar"></div>
+    <div class="xl-map-grid" id="xlMapGrid"></div>
+    <div style="font-size:.72rem;color:var(--td);margin-top:4px;">* حدد "تجاهل" للأعمدة غير المطلوبة</div>
+    <div class="xl-step-nav">
+      <button class="btn btgh btsm" id="xlBack2">← رجوع</button>
+      <button class="btn btg" id="xlNext2">معاينة النتائج →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Preview -->
+  <div class="xl-import-step" id="xlStep3">
+    <div style="font-size:.82rem;color:var(--tm);margin-bottom:10px;">معاينة البيانات التي ستُضاف:</div>
+    <div class="xl-stat-bar" id="xlPreviewStats"></div>
+    <div class="xl-preview" id="xlPreviewTable"></div>
+    <div style="background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:10px 14px;font-size:.72rem;color:var(--glb);margin-top:8px;">
+      <b>خيار الاستيراد:</b>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="xlMode" value="append" checked style="accent-color:var(--gld);"> إضافة البيانات الجديدة فوق الموجودة</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="xlMode" value="replace" style="accent-color:var(--gld);"> استبدال البيانات الموجودة بالكاملة</label>
+      </div>
+    </div>
+    <div class="xl-step-nav">
+      <button class="btn btgh btsm" id="xlBack3">← رجوع</button>
+      <button class="btn btg" id="xlNext3"><i class="fas fa-file-import"></i> استيراد الآن</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Result -->
+  <div class="xl-import-step" id="xlStep4">
+    <div style="text-align:center;padding:12px 0 18px;">
+      <div style="font-size:3rem;margin-bottom:8px;" id="xlResultIcon">✅</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--tp);" id="xlResultTitle">تم الاستيراد بنجاح!</div>
+      <div style="font-size:.8rem;color:var(--td);margin-top:4px;" id="xlResultSub"></div>
+    </div>
+    <div id="xlResultList"></div>
+    <div class="xl-step-nav">
+      <button class="btn btgh btsm" id="xlImportAnother"><i class="fas fa-plus"></i> استيراد ملف آخر</button>
+      <button class="btn btg" id="xlDone">تم ✓</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
 </body>
 </html>
