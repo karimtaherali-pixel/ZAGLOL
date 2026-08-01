@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>زغلول v12 | لوحة الثروة الذكية</title>
+<title>زغلول v15 | لوحة الثروة الذكية</title>
 <meta name="theme-color" content="#07080f"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="زغلول">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -873,6 +873,11 @@ input[type=number]{-moz-appearance:textfield;}
         <div id="efPlanContent"></div>
       </div>
 
+      <!-- Emergency Fund balance info -->
+      <div style="font-size:.72rem;color:rgba(56,189,248,.7);margin-top:6px;padding:6px 0;">
+        💡 صندوق الطوارئ المخصص: <b id="efFundBal" style="color:var(--kwd);font-family:'Plus Jakarta Sans',sans-serif;">0.000 KWD</b>
+        <button class="btn btgh btxs" id="efResetBtn" style="margin-right:8px;" title="إعادة دمج الصندوق مع الكاش"><i class="fas fa-rotate-left"></i> دمج مع الكاش</button>
+      </div>
       <!-- Quick add from cash -->
       <div class="ef-quick-add">
         <input type="number" id="efAddAmount" placeholder="مبلغ الإضافة (KWD)" step="10" min="1">
@@ -1012,6 +1017,14 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="fi-bar"><div class="fi-bar-fill" id="fiBbarFill" style="width:0%;"></div></div>
     </div>
     <div class="fi-milestones" id="fiMilestones"></div>
+    <!-- FI Corpus needed -->
+    <div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;padding:10px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:.65rem;color:#818cf8;font-weight:700;margin-bottom:3px;">رأس المال المستهدف (FI Corpus عند SWR)</div>
+        <div style="font-size:1rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#a5b4fc;" id="fiCorpus">0.000 KWD</div>
+      </div>
+      <div style="font-size:.72rem;color:var(--td);text-align:left;" id="fiCorpusPct">0% من الثروة الكلية</div>
+    </div>
     <div class="fi-countdown" id="fiCountdown">
       <div class="fi-countdown-title">الوقت المتوقع للوصول للاستقلال المالي</div>
       <div class="fi-countdown-years" id="fiYears">---</div>
@@ -1036,7 +1049,7 @@ input[type=number]{-moz-appearance:textfield;}
       </div>
     </div>
     <div class="pi-donut-wrap" id="piDonutWrap" style="display:none;">
-      <div class="pi-donut-canvas"><canvas id="piDonutChart" width="130" height="130"></canvas></div>
+      <div class="pi-donut-canvas" style="width:130px;height:130px;flex-shrink:0;"><canvas id="piDonutChart" width="130" height="130"></canvas></div>
       <div class="pi-donut-legend" id="piDonutLegend"></div>
     </div>
     <div id="piSourcesList"></div>
@@ -1232,8 +1245,12 @@ function initSB(url,key){
   return null;
 }
 function loadSBCfg(){
-  const u=localStorage.getItem('z_sb_url')||'',k=localStorage.getItem('z_sb_key')||'';
-  if(u&&k){CFG.URL=u;CFG.KEY=k;sbC=initSB(u,k);}
+  try{
+    const u=localStorage.getItem('z_sb_url')||'',k=localStorage.getItem('z_sb_key')||'';
+    if(u&&k){CFG.URL=u;CFG.KEY=k;sbC=initSB(u,k);}
+    const savedKey=localStorage.getItem('z_enc_set');
+    // Don't auto-restore encryption key - user must re-enter for security
+  }catch(e){console.warn('loadSBCfg',e);}
 }
 
 // ══════════════════════════════════════════════════════
@@ -1252,6 +1269,9 @@ function ser(){
   return{
     assets:S.assets,incomes:S.incomes,expenses:S.expenses,goals:S.goals,
     credits:S.credits,debts:S.debts,bullions:S.bullions,zakatGP:S.zakatGP,
+    passiveIncomeSources:S.passiveIncomeSources||[],
+    fiSettings:S.fiSettings||{swr:4,customTarget:0,growthRate:5,monthlyAdd:0},
+    efFund:S.efFund||0,
     wealthHistory:S.wealthHistory,startW:S.startW,
     rates:S.rates,gwb:S.gwb,gwbH:S.gwbH,startGwb:S.startGwb,
     _at:new Date().toISOString(),v:15
@@ -1268,6 +1288,9 @@ function apply(d){
   if(d.rates){S.rates.egp=d.rates.egp||FB_EGP;S.rates.xau=d.rates.xau||FB_XAU;}
   if(d.gwb)S.gwb=Object.assign({...GF},d.gwb);
   S.gwbH=d.gwbH||[];S.startGwb=d.startGwb||0;
+  S.passiveIncomeSources=d.passiveIncomeSources||[];
+  S.fiSettings=Object.assign({swr:4,customTarget:0,growthRate:5,monthlyAdd:0},d.fiSettings||{});
+  S.efFund=d.efFund||0;
   S.passiveIncomeSources=d.passiveIncomeSources||[];
   S.efFund=d.efFund||0;
   if(d.fiSettings)S.fiSettings=Object.assign({swr:4,customTarget:0,growthRate:5,monthlyAdd:0},d.fiSettings);
@@ -1849,8 +1872,11 @@ let compareGWB=false;
 let wlCFs=null;  // fullscreen chart instance
 
 function normalizeHistory(arr){
-  // Normalize old {timestamp,total} format to {ts,v}
-  return arr.map(p=>({ts:p.ts||p.timestamp||Date.now(),v:p.v||p.total||0})).filter(p=>p.v>0);
+  if(!arr||!arr.length)return[];
+  return arr
+    .map(p=>({ts:Number(p.ts||p.timestamp||Date.now()),v:Number(p.v||p.total||0)}))
+    .filter(p=>p.v>0&&isFinite(p.v)&&isFinite(p.ts))
+    .sort((a,b)=>a.ts-b.ts);
 }
 function getFilteredHistory(){
   if(!S.wealthHistory.length)return[];
@@ -2287,7 +2313,11 @@ function procInc(){
 // ══════════════════════════════════════════════════════
 function openM(id){document.getElementById(id).classList.add('open');}
 function closeM(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('modal')){
+    e.target.classList.remove('open');
+  }
+});
 
 function openCD(mode,eid){
   document.getElementById('cdMode').value=mode;document.getElementById('cdEid').value=eid||'';
@@ -2779,23 +2809,71 @@ function H(s){const d=document.createElement('div');d.innerText=s==null?'':Strin
 // INIT
 // ══════════════════════════════════════════════════════
 async function init(){
-  loadSBCfg();load();syncIn();tickerUp();
-  document.getElementById('zgp').value=(S.zakatGP||FB_XAU).toFixed(3);
+  // Load data
+  try{loadSBCfg();}catch(e){}
+  try{load();}catch(e){console.warn('load',e);}
+  syncIn();
+  tickerUp();
+  const zgpEl=document.getElementById('zgp');
+  if(zgpEl)zgpEl.value=(S.zakatGP||FB_XAU).toFixed(3);
   pCr=S.credits.reduce((s,c)=>s+c.amount,0);
   pDt=S.debts.reduce((s,d)=>s+d.amount,0);
-  bindAssets();bindModals();bindCloud();bindHeader();bindNav();bindPeriodButtons();
-  render(false);procInc();fetchRates();
-  setInterval(fetchRates,60000);setInterval(procInc,60000);
+
+  // Bind all UI handlers
+  try{bindAssets();}catch(e){console.warn('bindAssets',e);}
+  try{bindModals();}catch(e){console.warn('bindModals',e);}
+  try{bindCloud();}catch(e){console.warn('bindCloud',e);}
+  try{bindHeader();}catch(e){console.warn('bindHeader',e);}
+  try{bindNav();}catch(e){console.warn('bindNav',e);}
+  try{bindPeriodButtons();}catch(e){console.warn('bindPeriod',e);}
+  try{bindBackupUI();}catch(e){console.warn('bindBackup',e);}
+  try{bindEF();}catch(e){console.warn('bindEF',e);}
+  try{bindPIModal();}catch(e){console.warn('bindPI',e);}
+  try{bindExcelImport();}catch(e){console.warn('bindXL',e);}
+
+  // Initial renders
+  try{render(false);}catch(e){console.warn('render',e);}
+  try{syncFISettings();}catch(e){console.warn('syncFI',e);}
+  try{renderEF();}catch(e){console.warn('renderEF',e);}
+  try{renderFI();}catch(e){console.warn('renderFI',e);}
+  try{renderAdvanced();}catch(e){console.warn('renderAdv',e);}
+  try{renderBackups();}catch(e){console.warn('renderBk',e);}
+
+  // Recurring income processing
+  procInc();
+
+  // Start live rates
+  fetchRates();
+  setInterval(fetchRates,60000);
+  setInterval(procInc,60000);
+
+  // Cloud sync
   if(sbC){
     setSS('y','جاري التحميل...');
-    const cd=await pull(UID);
-    if(cd){
-      const ld=new Date(S._at||0),rd=new Date(cd._at||0);
-      if(rd>ld){apply(cd);save();syncIn();render(false);nt('☁️ تم تحميل أحدث نسخة','suc');}
-      else await push(UID);
-    }else await push(UID);
-    subRT(UID);
-  }else setSS('r','تخزين محلي');
+    try{
+      const cd=await pull(UID);
+      if(cd){
+        const ld=new Date(S._at||0),rd=new Date(cd._at||0);
+        if(rd>ld){
+          apply(cd);save();syncIn();render(false);
+          nt('☁️ تم تحميل أحدث نسخة من السحابة','suc');
+        }else{
+          await push(UID);
+        }
+      }else{
+        await push(UID);
+      }
+      subRT(UID);
+    }catch(e){setSS('r','خطأ اتصال');console.warn(e);}
+  }else{
+    setSS('r','تخزين محلي فقط');
+  }
+
+  // Auto-backup once per day on startup
+  const bks=getBackups();
+  if(!bks.length||((Date.now()-new Date(bks[0].ts).getTime())>86400000)){
+    setTimeout(()=>saveBackup('تلقائي — إقلاع'),4000);
+  }
 }
 
 
@@ -3198,7 +3276,6 @@ schedSyncEnc=function(){
 // ══════════════════════════════════════════════════════
 function renderAdvanced(){
   try{renderHealthScore();}catch(e){console.warn("healthScore",e);}
-  try{renderFI();}catch(e){console.warn("fi render",e);}
   try{renderProjections();}catch(e){console.warn("proj",e);}
   try{renderAllocation();}catch(e){console.warn("alloc",e);}
   try{renderReminders();}catch(e){console.warn("remind",e);}
@@ -3768,6 +3845,86 @@ function exportToExcel() {
 
 
 
+
+// ══════════════════════════════════════════════════════
+// EMERGENCY FUND RENDER
+// ══════════════════════════════════════════════════════
+function renderEF(){
+  try{
+    const me=mRE();
+    const efBal=S.efFund>0?S.efFund:S.assets.cashKWD;
+    const target12=me*12;const target3=me*3;const target6=me*6;
+    const cov=me>0?efBal/me:(efBal>0?99:0);
+    const pct=target12>0?Math.min(100,(efBal/target12)*100):(efBal>0?100:0);
+    const gap=Math.max(0,target12-efBal);
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText=v;};
+    // Coverage number
+    const covEl=document.getElementById('efMonthsCover');
+    if(covEl)covEl.innerText=Math.min(cov,12).toFixed(1);
+    // Progress fill
+    const fillEl=document.getElementById('emF');
+    if(fillEl){
+      fillEl.style.width=Math.min(100,pct)+'%';
+      fillEl.style.background=pct>=100?'linear-gradient(90deg,#d4af37,#f3cd6b)':pct>=50?'linear-gradient(90deg,#38bdf8,#34d399)':pct>=25?'linear-gradient(90deg,#fb923c,#f3cd6b)':'linear-gradient(90deg,#f87171,#fb923c)';
+    }
+    // Stats
+    set('emC',efBal.toFixed(3)+' KWD');
+    set('emT',target12.toFixed(3)+' KWD');
+    const gapEl=document.getElementById('efGap');
+    if(gapEl){gapEl.innerText=gap.toFixed(3)+' KWD';gapEl.style.color=gap===0?'var(--grn)':'var(--red)';}
+    const efFundEl=document.getElementById('efFundBal');
+    if(efFundEl)efFundEl.innerText=(S.efFund||0).toFixed(3)+' KWD';
+    // Status badge
+    const badge=document.getElementById('efStatusBadge');
+    if(badge){
+      if(cov>=12){badge.className='ef-status-badge ef-excellent';badge.innerHTML='<i class="fas fa-shield-halved"></i> حماية ممتازة 🌟';}
+      else if(cov>=6){badge.className='ef-status-badge ef-ok';badge.innerHTML='<i class="fas fa-circle-check"></i> جيد جداً ✅';}
+      else if(cov>=3){badge.className='ef-status-badge ef-warn';badge.innerHTML='<i class="fas fa-triangle-exclamation"></i> مقبول — يحتاج تعزيز';}
+      else if(cov>=1){badge.className='ef-status-badge ef-warn';badge.innerHTML='<i class="fas fa-exclamation"></i> ضعيف — أولوية عالية';}
+      else{badge.className='ef-status-badge ef-danger';badge.innerHTML='<i class="fas fa-circle-exclamation"></i> خطر — ابدأ الآن!';}
+    }
+    // Tiers
+    set('efTier1Val',(target3).toFixed(3)+' KWD');
+    set('efTier2Val',(target6-target3).toFixed(3)+' KWD');
+    set('efTier3Val',(target12-target6).toFixed(3)+' KWD');
+    const at=(id,ok)=>{const e=document.getElementById(id);if(!e)return;e.classList.toggle('active',ok);e.classList.toggle('inactive',!ok);};
+    at('efTier1',cov>=1);at('efTier2',cov>=3);at('efTier3',cov>=6);
+    // Benchmarks
+    const bk=(id,ok)=>{const e=document.getElementById(id);if(!e)return;e.innerText=ok?'✅ محقق':'لم يُحقَّق';e.style.color=ok?'var(--grn)':'var(--red)';};
+    bk('efBench3',cov>=3);bk('efBench6',cov>=6);bk('efBench12',cov>=12);
+    // Action plan
+    const planEl=document.getElementById('efPlanContent');
+    if(planEl){
+      const plans=[];
+      if(me===0){plans.push('<div class="ef-plan-item"><i class="fas fa-circle-info"></i> أضف مصروفاتك الشهرية لتحديد هدف الصندوق.</div>');}
+      else if(cov<3){
+        const mo=Math.ceil(gap/6);
+        plans.push('<div class="ef-plan-item"><i class="fas fa-bullseye"></i> <b>أولوية قصوى:</b> ابنِ طبقة الأمان الأولى ('+target3.toFixed(2)+' KWD) أولاً.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-calendar"></i> ادّخر <b>'+mo.toFixed(2)+' KWD/شهر</b> للوصول للهدف الكامل خلال 6 أشهر.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-piggy-bank"></i> استخدم حساب توفير سائل — لا تستثمر صندوق الطوارئ.</div>');
+      }else if(cov<6){
+        const mo=Math.ceil((target6-efBal)/6);
+        plans.push('<div class="ef-plan-item"><i class="fas fa-check-circle" style="color:var(--grn);"></i> ✅ أنجزت الطبقة الأولى! اكمل إلى 6 أشهر.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-calendar"></i> ادّخر <b>'+mo.toFixed(2)+' KWD/شهر</b> للوصول إلى 6 أشهر.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-coins"></i> الفرق المطلوب: <b>'+(target6-efBal).toFixed(2)+' KWD</b> — ودائع قصيرة مناسبة.</div>');
+      }else if(cov<12){
+        const mo=Math.ceil((target12-efBal)/12);
+        plans.push('<div class="ef-plan-item"><i class="fas fa-check-circle" style="color:var(--grn);"></i> ✅ طبقتان مكتملتان! أكمل للحماية الكاملة 12 شهر.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-calendar"></i> ادّخر <b>'+mo.toFixed(2)+' KWD/شهر</b> لإكمال الطبقة الثالثة.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-gem"></i> الطبقة الثالثة: ذهب أو أدوات متوسطة المدى — أعلى حفظ للقيمة.</div>');
+      }else{
+        plans.push('<div class="ef-plan-item"><i class="fas fa-trophy" style="color:var(--glb);"></i> <b>ممتاز!</b> صندوقك محكم — 12 شهراً كاملاً.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-arrow-trend-up"></i> وجّه الادخار الإضافي للاستثمار وصندوق الاستقلال المالي.</div>');
+        plans.push('<div class="ef-plan-item"><i class="fas fa-rotate"></i> راجع الصندوق كل 6 أشهر وعدّله مع تغيّر المصروفات.</div>');
+      }
+      planEl.innerHTML=plans.join('');
+    }
+    // Legacy
+    const emMEl=document.getElementById('emM');
+    if(emMEl)emMEl.innerText=me>0?'يغطي '+cov.toFixed(1)+' شهر من المصروفات المتكررة.':'أضف مصروفات متكررة.';
+  }catch(e){console.warn('renderEF error',e);}
+}
+
 // ══════════════════════════════════════════════════════
 // PASSIVE INCOME TRACKER + FINANCIAL INDEPENDENCE ENGINE
 // ══════════════════════════════════════════════════════
@@ -3803,9 +3960,9 @@ function calcFI() {
   const target   = fiTarget();
   const pct      = target > 0 ? Math.min(100, (passive / target) * 100) : 0;
   const gap      = Math.max(0, target - passive);
-  const swr      = (parseFloat(document.getElementById('fiSWR')?.value) || 4) / 100;
-  const growthRate = (parseFloat(document.getElementById('fiGrowthRate')?.value) || 5) / 100 / 12;
-  const monthlyAdd = parseFloat(document.getElementById('fiMonthlyAdd')?.value) || 0;
+  const swr      = ((S.fiSettings?.swr) || parseFloat(document.getElementById('fiSWR')?.value) || 4) / 100;
+  const growthRate = ((S.fiSettings?.growthRate) || parseFloat(document.getElementById('fiGrowthRate')?.value) || 5) / 100 / 12;
+  const monthlyAdd = (S.fiSettings?.monthlyAdd) || parseFloat(document.getElementById('fiMonthlyAdd')?.value) || 0;
 
   // Time to FI calculation
   let yearsToFI = null;
@@ -3842,7 +3999,7 @@ function renderFI() {
     arc.style.stroke = pct >= 100 ? '#f3cd6b' : pct >= 75 ? '#4ade80' : pct >= 50 ? '#fb923c' : '#34d399';
   }
   const pctEl = document.getElementById('fiPct');
-  if (pctEl) pctEl.innerText = pct.toFixed(1) + '%';
+  if (pctEl) { pctEl.innerText = Math.min(100,pct).toFixed(1) + '%'; pctEl.style.color = pct>=100?'#f3cd6b':pct>=75?'#4ade80':pct>=50?'#fb923c':'#34d399'; }
 
   // Stats
   const setEl = (id, val) => { const e = document.getElementById(id); if(e) e.innerText = val; };
@@ -3899,11 +4056,15 @@ function renderFI() {
     if (labEl)   labEl.innerText = 'أضف مصادر دخل سلبي أو رفع معدل النمو لحساب التوقع';
   }
 
-  // FI number info
-  const numKwd = fiNumber.toFixed(3);
-  const w = wealth();
-  const wealthPct = fiNumber > 0 ? Math.min(100, (w.tot / fiNumber) * 100) : 0;
-
+  // Update FI number display if element exists
+  const fiNumEl = document.getElementById('fiCorpus');
+  if(fiNumEl) fiNumEl.innerText = fiNumber.toFixed(3) + ' KWD';
+  const fiWpctEl = document.getElementById('fiCorpusPct');
+  if(fiWpctEl){
+    const ww=wealth();
+    const wpct = fiNumber>0?Math.min(100,(ww.tot/fiNumber)*100):0;
+    fiWpctEl.innerText = wpct.toFixed(1)+'% من الثروة الكلية مقارنةً بالهدف';
+  }
   renderPISources();
 }
 
@@ -3941,7 +4102,7 @@ function renderPISources() {
     piDonutChart = new Chart(ctx.getContext('2d'), {
       type: 'doughnut',
       data: { labels: Object.keys(byType).map(t=>PI_TYPES[t]?.label||t), datasets: [{ data: vals, backgroundColor: colors, borderColor: '#0f1320', borderWidth: 3 }] },
-      options: { responsive: false, cutout: '65%', plugins: { legend: { display: false } }, animation: { duration: 600 } }
+      options: { responsive: true, maintainAspectRatio: true, cutout: '65%', plugins: { legend: { display: false } }, animation: { duration: 600 } }
     });
     const leg = document.getElementById('piDonutLegend');
     if (leg) leg.innerHTML = Object.entries(byType).map(([t,v]) =>
@@ -4000,14 +4161,14 @@ function renderPISources() {
 }
 
 // ── Toggle active/inactive ──
-function togglePI(id) {
+window.togglePI=function togglePI(id) {
   const src = S.passiveIncomeSources.find(s => s.id === id);
   if (!src) return;
   src.active = src.active === false ? true : false;
   renderFI();
   schedSyncEnc ? schedSyncEnc() : schedSync();
   nt(src.active ? '✅ تم تفعيل المصدر' : '⏸️ تم إيقاف المصدر مؤقتاً');
-}
+};
 
 // ── Open PI source modal ──
 function openPIMod(editId) {
@@ -4049,10 +4210,35 @@ function updateYieldCalc() {
   }
 }
 
+
+// ── Bind Emergency Fund UI ──
+function bindEF(){
+  document.getElementById('efAddBtn')?.addEventListener('click',()=>{
+    const v=parseFloat(document.getElementById('efAddAmount')?.value)||0;
+    if(v<=0){nt('❌ أدخل مبلغاً صحيحاً','err');return;}
+    if(S.assets.cashKWD<v){nt('❌ رصيد الكاش غير كافٍ','err');return;}
+    S.assets.cashKWD=Math.max(0,S.assets.cashKWD-v);
+    S.efFund=(S.efFund||0)+v;
+    syncIn();render();
+    const inp=document.getElementById('efAddAmount');
+    if(inp)inp.value='';
+    nt('✅ أضفت '+v.toFixed(2)+' KWD لصندوق الطوارئ','suc');
+  });
+  document.getElementById('efResetBtn')?.addEventListener('click',()=>{
+    if(!(S.efFund>0)){nt('الصندوق المخصص فارغ','wrn');return;}
+    if(!confirm('إعادة دمج '+S.efFund.toFixed(2)+' KWD من صندوق الطوارئ إلى الكاش؟'))return;
+    S.assets.cashKWD+=(S.efFund||0);
+    S.efFund=0;
+    syncIn();render();
+    nt('✅ تم دمج الصندوق مع الكاش','suc');
+  });
+}
+
 // ── Bind PI Modal ──
 function bindPIModal() {
   document.getElementById('addPiBtn')?.addEventListener('click', () => openPIMod(null));
-  document.getElementById('piCnc')?.addEventListener('click',   () => closeM('piMod'));
+  document.getElementById('piCnc')?.addEventListener('click', () => closeM('piMod'));
+  document.getElementById('piMod')?.addEventListener('click', e=>{ if(e.target===document.getElementById('piMod'))closeM('piMod'); });
 
   // Type grid selection
   document.getElementById('piTypeGrid')?.addEventListener('click', e => {
@@ -4107,12 +4293,13 @@ function bindPIModal() {
 
 // ── Sync FI settings from inputs on load ──
 function syncFISettings() {
-  const fi = S.fiSettings || {};
-  const setVal = (id, val) => { const e = document.getElementById(id); if(e && val) e.value = val; };
-  setVal('fiSWR',          fi.swr         || 4);
-  setVal('fiCustomTarget', fi.customTarget || '');
-  setVal('fiGrowthRate',   fi.growthRate   || 5);
-  setVal('fiMonthlyAdd',   fi.monthlyAdd   || '');
+  if(!S.fiSettings) S.fiSettings = {swr:4, customTarget:0, growthRate:5, monthlyAdd:0};
+  const fi = S.fiSettings;
+  const setVal = (id, val) => { const e = document.getElementById(id); if(e) e.value = val||''; };
+  setVal('fiSWR',          fi.swr        || 4);
+  setVal('fiCustomTarget', fi.customTarget > 0 ? fi.customTarget : '');
+  setVal('fiGrowthRate',   fi.growthRate  || 5);
+  setVal('fiMonthlyAdd',   fi.monthlyAdd  > 0 ? fi.monthlyAdd : '');
 }
 
 document.addEventListener('DOMContentLoaded',init);
